@@ -1,0 +1,320 @@
+import React, { useState, useEffect } from 'react';
+import { 
+  Package, 
+  Search, 
+  Eye, 
+  CheckCircle2, 
+  Truck, 
+  XCircle, 
+  Clock,
+  Filter,
+  ArrowUpDown,
+  MoreVertical,
+  ExternalLink,
+  Phone,
+  MapPin,
+  Mail,
+  User,
+  ShoppingBag,
+  Trash2
+} from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { 
+  Card, 
+  CardContent, 
+  CardHeader, 
+  CardTitle 
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import CONFIG from '@/lib/config';
+
+interface IOrder {
+  _id: string;
+  orderNumber: string;
+  customer: {
+    name: string;
+    phone: string;
+    email: string;
+    address: string;
+    province: string;
+    district: string;
+    note?: string;
+  };
+  items: any[];
+  totalAmount: number;
+  paymentMethod: string;
+  status: 'Pending' | 'Confirmed' | 'Shipping' | 'Delivered' | 'Cancelled';
+  createdAt: string;
+}
+
+const statusConfig = {
+  Pending: { label: 'Đang chờ', color: 'bg-amber-100 text-amber-700 border-amber-200', icon: Clock },
+  Confirmed: { label: 'Đã xác nhận', color: 'bg-blue-100 text-blue-700 border-blue-200', icon: CheckCircle2 },
+  Shipping: { label: 'Đang giao', color: 'bg-purple-100 text-purple-700 border-purple-200', icon: Truck },
+  Delivered: { label: 'Hoàn thành', color: 'bg-emerald-100 text-green-700 border-emerald-200', icon: CheckCircle2 },
+  Cancelled: { label: 'Đã hủy', color: 'bg-rose-100 text-red-700 border-rose-200', icon: XCircle },
+};
+
+const AdminOrders = () => {
+  const [orders, setOrders] = useState<IOrder[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedOrder, setSelectedOrder] = useState<IOrder | null>(null);
+  const [filterStatus, setFilterStatus] = useState('All');
+
+  const fetchOrders = async () => {
+    setLoading(true);
+    try {
+      const token = localStorage.getItem('adminToken');
+      const res = await fetch(`${CONFIG.API_URL}/orders/admin/all`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const data = await res.json();
+      setOrders(data);
+    } catch (error) {
+      console.error('Lỗi lấy danh sách đơn hàng:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchOrders();
+  }, []);
+
+  const updateOrderStatus = async (id: string, newStatus: string) => {
+    try {
+      const token = localStorage.getItem('adminToken');
+      const res = await fetch(`${CONFIG.API_URL}/orders/${id}/status`, {
+        method: 'PATCH',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}` 
+        },
+        body: JSON.stringify({ status: newStatus })
+      });
+      if (res.ok) {
+        fetchOrders();
+        if (selectedOrder?._id === id) {
+          setSelectedOrder({ ...selectedOrder, status: newStatus as any });
+        }
+      }
+    } catch (error) {
+      console.error('Lỗi cập nhật trạng thái:', error);
+    }
+  };
+
+  const deleteOrder = async (id: string) => {
+    if (!window.confirm('Bạn có chắc chắn muốn xóa đơn hàng này? Hành động này không thể hoàn tác.')) return;
+    
+    try {
+      const token = localStorage.getItem('adminToken');
+      const res = await fetch(`${CONFIG.API_URL}/orders/${id}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) {
+        alert('Xóa đơn hàng thành công!');
+        setSelectedOrder(null);
+        fetchOrders();
+      }
+    } catch (error) {
+      console.error('Lỗi xóa đơn hàng:', error);
+    }
+  };
+
+  const filteredOrders = filterStatus === 'All' 
+    ? orders 
+    : orders.filter(o => o.status === filterStatus);
+
+  return (
+    <div className="p-8 bg-gray-50 min-h-screen font-sans">
+      <div className="flex justify-between items-end mb-10">
+        <div className="space-y-2">
+          <h1 className="text-4xl font-black uppercase tracking-tighter italic flex items-center gap-3">
+            <Package className="text-red-600" size={36} />
+            Quản lý <span className="text-red-600">đơn hàng</span>
+          </h1>
+          <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">
+            Theo dõi và xử lý đơn hàng từ khách hàng toàn quốc
+          </p>
+        </div>
+        
+        <div className="flex gap-4">
+          <div className="bg-white p-1 rounded-2xl border border-gray-100 flex shadow-sm">
+            {['All', 'Pending', 'Confirmed', 'Shipping', 'Delivered'].map((s) => (
+              <button
+                key={s}
+                onClick={() => setFilterStatus(s)}
+                className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${filterStatus === s ? 'bg-red-600 text-white shadow-lg shadow-red-100' : 'text-gray-400 hover:text-gray-600'}`}
+              >
+                {s === 'All' ? 'Tất cả' : statusConfig[s as keyof typeof statusConfig].label}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
+        {/* DANH SÁCH ĐƠN HÀNG */}
+        <div className="xl:col-span-2 space-y-4">
+          {loading ? (
+            <div className="bg-white rounded-[2rem] p-20 text-center border border-gray-100 shadow-sm">
+              <div className="animate-spin text-red-600 inline-block mb-4"><Package size={48} /></div>
+              <p className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-400">Đang tải danh sách đơn hàng...</p>
+            </div>
+          ) : filteredOrders.length === 0 ? (
+            <div className="bg-white rounded-[2rem] p-20 text-center border border-gray-100 shadow-sm">
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-300 italic">Không có đơn hàng nào phù hợp</p>
+            </div>
+          ) : (
+            filteredOrders.map((order) => (
+              <motion.div
+                layout
+                key={order._id}
+                onClick={() => setSelectedOrder(order)}
+                className={`bg-white p-6 rounded-[2rem] border-2 cursor-pointer transition-all ${selectedOrder?._id === order._id ? 'border-red-600 shadow-xl' : 'border-transparent hover:border-gray-100 shadow-sm'}`}
+              >
+                <div className="flex flex-wrap items-center justify-between gap-4">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-2xl bg-gray-50 flex items-center justify-center text-gray-400">
+                      <ShoppingBag size={24} />
+                    </div>
+                    <div>
+                      <h3 className="font-black text-sm uppercase tracking-tight">{order.orderNumber}</h3>
+                      <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{new Date(order.createdAt).toLocaleString('vi-VN')}</p>
+                    </div>
+                  </div>
+
+                  <div className="flex-1 min-w-[200px]">
+                    <p className="text-xs font-black uppercase text-gray-900">{order.customer.name}</p>
+                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{order.customer.phone}</p>
+                  </div>
+
+                  <div className="text-right flex items-center gap-4">
+                    <div>
+                      <p className="text-lg font-black text-red-600 tracking-tighter">{order.totalAmount.toLocaleString()}₫</p>
+                      <Badge className={`mt-1 border font-black uppercase text-[8px] tracking-widest px-2 py-0.5 rounded-lg ${statusConfig[order.status].color}`}>
+                        {statusConfig[order.status].label}
+                      </Badge>
+                    </div>
+                    
+                    <button 
+                      onClick={(e) => {
+                        e.stopPropagation(); // Ngăn việc nhấn nút xóa làm mở chi tiết đơn hàng
+                        deleteOrder(order._id);
+                      }}
+                      className="p-3 text-gray-300 hover:text-red-600 hover:bg-red-50 rounded-2xl transition-all"
+                      title="Xóa nhanh đơn hàng"
+                    >
+                      <Trash2 size={18} />
+                    </button>
+                  </div>
+                </div>
+              </motion.div>
+            ))
+          )}
+        </div>
+
+        {/* CHI TIẾT ĐƠN HÀNG */}
+        <div className="xl:col-span-1">
+          <AnimatePresence mode="wait">
+            {selectedOrder ? (
+              <motion.div
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 20 }}
+                className="sticky top-8 space-y-6"
+              >
+                <Card className="rounded-[2.5rem] border-none shadow-2xl overflow-hidden bg-white">
+                  <div className="bg-gray-900 p-8 text-white">
+                    <div className="flex justify-between items-start mb-6">
+                      <Badge className={`bg-white/10 text-white border-white/20 uppercase font-black text-[8px] tracking-widest px-3 py-1`}>
+                        {selectedOrder.orderNumber}
+                      </Badge>
+                      <button onClick={() => setSelectedOrder(null)} className="text-gray-400 hover:text-white transition-colors">
+                        <XCircle size={20} />
+                      </button>
+                    </div>
+                    <h2 className="text-2xl font-black uppercase tracking-tighter italic">Chi tiết <span className="text-red-600">đơn hàng</span></h2>
+                  </div>
+
+                  <CardContent className="p-8 space-y-10">
+                    {/* Customer Info */}
+                    <div className="space-y-4">
+                      <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 border-b border-gray-50 pb-2">Thông tin khách hàng</h4>
+                      <div className="space-y-3">
+                        <div className="flex items-center gap-3">
+                          <User size={16} className="text-red-600" />
+                          <span className="text-sm font-black uppercase">{selectedOrder.customer.name}</span>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <Phone size={16} className="text-red-600" />
+                          <span className="text-sm font-bold">{selectedOrder.customer.phone}</span>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <Mail size={16} className="text-red-600" />
+                          <span className="text-sm font-bold text-gray-500">{selectedOrder.customer.email}</span>
+                        </div>
+                        <div className="flex items-start gap-3">
+                          <MapPin size={16} className="text-red-600 mt-1" />
+                          <span className="text-xs font-bold text-gray-500 leading-relaxed">
+                            {selectedOrder.customer.address}, {selectedOrder.customer.district}, {selectedOrder.customer.province}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Order Items */}
+                    <div className="space-y-4">
+                      <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 border-b border-gray-50 pb-2">Sản phẩm đã mua</h4>
+                      <div className="space-y-4">
+                        {selectedOrder.items.map((item, idx) => (
+                          <div key={idx} className="flex gap-4 items-center bg-gray-50 p-3 rounded-2xl">
+                            <img src={item.image} className="w-12 h-12 rounded-lg object-cover bg-white" alt="" />
+                            <div className="flex-1 min-w-0">
+                              <p className="text-[10px] font-black uppercase tracking-tight truncate">{item.name}</p>
+                              <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">SL: {item.quantity} x {item.price.toLocaleString()}₫</p>
+                            </div>
+                            <span className="text-xs font-black">{(item.price * item.quantity).toLocaleString()}₫</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Change Status */}
+                    <div className="space-y-4 pt-6 border-t border-gray-100">
+                      <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">Cập nhật trạng thái</h4>
+                      <div className="grid grid-cols-2 gap-2">
+                        {Object.entries(statusConfig).map(([key, config]) => (
+                          <button
+                            key={key}
+                            onClick={() => updateOrderStatus(selectedOrder._id, key)}
+                            className={`flex items-center gap-2 p-3 rounded-xl border-2 transition-all ${selectedOrder.status === key ? 'border-red-600 bg-red-50' : 'border-gray-50 hover:border-gray-100'}`}
+                          >
+                            <config.icon size={14} className={selectedOrder.status === key ? 'text-red-600' : 'text-gray-400'} />
+                            <span className={`text-[10px] font-black uppercase tracking-tight ${selectedOrder.status === key ? 'text-red-600' : 'text-gray-500'}`}>
+                              {config.label}
+                            </span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            ) : (
+              <div className="bg-white rounded-[2.5rem] p-20 text-center border-2 border-dashed border-gray-100">
+                <Package size={48} className="mx-auto text-gray-100 mb-4" />
+                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-300">Chọn một đơn hàng để xem chi tiết</p>
+              </div>
+            )}
+          </AnimatePresence>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default AdminOrders;

@@ -1,0 +1,103 @@
+import React, { useState, useEffect } from 'react';
+import { motion } from "framer-motion";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Calendar, Loader2 } from "lucide-react";
+import CONFIG from '@/lib/config';
+
+interface NewsPost {
+  _id: string;
+  title: string;
+  summary: string;
+  thumbnail: string;
+  createdAt: string;
+  slug: string;
+}
+
+const NewsSection = () => {
+  const [news, setNews] = useState<NewsPost[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchNews = async () => {
+      try {
+        const res = await fetch(`${CONFIG.API_URL}/posts?limit=3`);
+        const data = await res.json();
+        // Cập nhật lấy posts từ object phân trang mới
+        setNews(data.posts || []);
+      } catch (error) {
+        console.error("Lỗi lấy tin tức:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchNews();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="py-24 flex justify-center">
+        <Loader2 className="animate-spin text-destructive" size={40} />
+      </div>
+    );
+  }
+
+  if (news.length === 0) return null;
+
+  return (
+    <section className="py-24 bg-secondary/20">
+      <div className="container mx-auto px-4">
+        <div className="text-center mb-16">
+          <h2 className="text-4xl md:text-5xl font-black uppercase tracking-tighter mb-4">
+            Tin Tức <span className="text-destructive">Thể Thao</span>
+          </h2>
+          <div className="h-1.5 w-24 bg-destructive mx-auto" />
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {news.map((item, index) => (
+            <motion.div
+              key={item._id}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: index * 0.1 }}
+            >
+              <Card className="group h-full overflow-hidden border-none shadow-md hover:shadow-2xl transition-all duration-500">
+                <CardHeader className="p-0 overflow-hidden aspect-video">
+                  <img 
+                    src={item.thumbnail || 'https://images.unsplash.com/photo-1626224580175-66094142ce3a?q=80&w=600&auto=format&fit=crop'} 
+                    alt={item.title} 
+                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
+                  />
+                </CardHeader>
+                <CardContent className="p-8">
+                  <div className="flex items-center gap-2 text-muted-foreground text-sm font-bold mb-4">
+                    <Calendar className="h-4 w-4 text-destructive" />
+                    {new Date(item.createdAt).toLocaleDateString('vi-VN')}
+                  </div>
+                  <h3 className="text-xl font-black mb-4 group-hover:text-destructive transition-colors line-clamp-2 uppercase leading-tight">
+                    {item.title}
+                  </h3>
+                  <p className="text-muted-foreground leading-relaxed mb-6 line-clamp-3">
+                    {item.summary}
+                  </p>
+                  <Button 
+                    variant="link" 
+                    className="p-0 h-auto font-black uppercase tracking-widest text-destructive hover:no-underline group-hover:translate-x-2 transition-transform"
+                    onClick={() => window.location.href = `/news/${item.slug}`}
+                  >
+                    Xem thêm →
+                  </Button>
+                </CardContent>
+              </Card>
+            </motion.div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+};
+
+export default NewsSection;
+
