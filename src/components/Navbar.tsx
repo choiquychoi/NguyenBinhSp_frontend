@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { ShoppingCart, Search, Menu } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect, useRef } from 'react';
+import { ShoppingCart, Search, Menu, X, Loader2 } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -10,10 +10,18 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import { useCart } from '@/context/CartContext';
+import axios from 'axios';
 
 const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const searchRef = useRef<HTMLDivElement>(null);
+  const navigate = useNavigate();
   const { getItemCount } = useCart();
 
   useEffect(() => {
@@ -21,8 +29,49 @@ const Navbar = () => {
       setIsScrolled(window.scrollY > 20);
     };
     window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    
+    // Click outside to close search
+    const handleClickOutside = (event: MouseEvent) => {
+      if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
+        setIsSearchOpen(false);
+        setSearchResults([]);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
   }, []);
+
+  // Live Search Logic
+  useEffect(() => {
+    const delayDebounceFn = setTimeout(async () => {
+      if (searchQuery.trim().length > 1) {
+        setIsLoading(true);
+        try {
+          const { data } = await axios.get(`http://localhost:5005/api/products?keyword=${searchQuery}&limit=5`);
+          setSearchResults(data.products);
+        } catch (error) {
+          console.error('Search error:', error);
+        } finally {
+          setIsLoading(false);
+        }
+      } else {
+        setSearchResults([]);
+      }
+    }, 500);
+
+    return () => clearTimeout(delayDebounceFn);
+  }, [searchQuery]);
+
+  const handleProductClick = (slug: string) => {
+    navigate(`/product/${slug}`);
+    setIsSearchOpen(false);
+    setSearchQuery('');
+    setSearchResults([]);
+  };
 
   const navLinks = [
     { name: "Cầu Lông", path: "/category/Cầu lông" },
@@ -61,25 +110,77 @@ const Navbar = () => {
 
         {/* Desktop Nav */}
         <div className="hidden lg:block">
-          <ul className="flex gap-6">
-            {navLinks.map((link) => (
-              <li key={link.name}>
-                <Link 
-                  to={link.path} 
-                  className="text-[11px] font-black uppercase tracking-widest hover:text-destructive transition-colors"
-                >
-                  {link.name}
-                </Link>
-              </li>
-            ))}
-          </ul>
+          {!isSearchOpen ? (
+            <ul className="flex gap-6">
+              {navLinks.map((link) => (
+                <li key={link.name}>
+                  <Link 
+                    to={link.path} 
+                    className="text-[11px] font-black uppercase tracking-widest hover:text-destructive transition-colors"
+                  >
+                    {link.name}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <div ref={searchRef} className="relative w-[400px] animate-in slide-in-from-right-4 duration-300">
+              <Input
+                autoFocus
+                placeholder="Tìm kiếm vợt, giày, phụ kiện..."
+                className="rounded-full border-2 border-destructive focus-visible:ring-0 h-10 px-6 pr-10 bg-white text-black"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+              <X 
+                className="absolute right-3 top-2.5 h-4 w-4 text-zinc-400 cursor-pointer hover:text-destructive" 
+                onClick={() => {setIsSearchOpen(false); setSearchQuery('');}}
+              />
+
+              {/* Search Results Dropdown */}
+              {(searchResults.length > 0 || isLoading) && (
+                <div className="absolute top-12 left-0 w-full bg-white rounded-2xl shadow-2xl border border-zinc-100 overflow-hidden z-[60]">
+                  {isLoading ? (
+                    <div className="p-4 flex items-center justify-center text-zinc-400">
+                      <Loader2 className="h-5 w-5 animate-spin mr-2" />
+                      <span className="text-xs font-bold uppercase tracking-widest">Đang tìm kiếm...</span>
+                    </div>
+                  ) : (
+                    <div className="p-2">
+                      {searchResults.map((product) => (
+                        <div 
+                          key={product._id}
+                          onClick={() => handleProductClick(product.slug)}
+                          className="flex items-center gap-4 p-2 hover:bg-zinc-50 rounded-xl cursor-pointer transition-colors text-black"
+                        >
+                          <img src={product.mainImage} alt={product.name} className="w-10 h-10 object-cover rounded-lg" />
+                          <div className="flex flex-col">
+                            <span className="text-[10px] font-black uppercase text-destructive tracking-widest leading-none mb-1">{product.brand}</span>
+                            <span className="text-xs font-black uppercase tracking-tighter line-clamp-1">{product.name}</span>
+                            <span className="text-[10px] font-bold text-zinc-400">{product.price.toLocaleString('vi-VN')}₫</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Icons & Actions */}
         <div className="flex items-center gap-2 md:gap-4">
-          <Button variant="ghost" size="icon" className="hidden sm:flex">
-            <Search className="h-5 w-5" />
-          </Button>
+          {!isSearchOpen && (
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="hidden sm:flex hover:bg-destructive/5 hover:text-destructive transition-colors"
+              onClick={() => setIsSearchOpen(true)}
+            >
+              <Search className="h-5 w-5" />
+            </Button>
+          )}
           
           <Button variant="ghost" size="icon" className="relative" asChild>
             <Link to="/cart">
@@ -107,6 +208,31 @@ const Navbar = () => {
                     <span className="text-green-600 dark:text-green-500">Sports</span>
                   </SheetTitle>
                 </SheetHeader>
+                {/* Mobile Search */}
+                <div className="mb-8">
+                  <Input 
+                    placeholder="Tìm kiếm..." 
+                    className="rounded-full border-2 border-destructive"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                  />
+                  {searchResults.length > 0 && (
+                    <div className="mt-4 space-y-4">
+                      {searchResults.map((product) => (
+                        <div 
+                          key={product._id}
+                          onClick={() => handleProductClick(product.slug)}
+                          className="flex items-center gap-4 p-2"
+                        >
+                          <img src={product.mainImage} alt={product.name} className="w-10 h-10 object-cover rounded-lg" />
+                          <div className="flex flex-col">
+                            <span className="text-xs font-black uppercase tracking-tighter">{product.name}</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
                 <nav className="flex flex-col gap-6 mt-4">
                   {navLinks.map((link) => (
                     <Link 

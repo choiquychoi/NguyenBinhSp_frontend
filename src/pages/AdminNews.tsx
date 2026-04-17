@@ -15,9 +15,12 @@ import {
   LayoutGrid,
   Calendar,
   Eye,
-  MoreVertical
+  MoreVertical,
+  Upload,
+  X
 } from 'lucide-react';
 import CONFIG from '@/lib/config';
+import axios from 'axios';
 
 interface Product {
   _id: string;
@@ -62,6 +65,7 @@ const AdminNews: React.FC = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [attachedProducts, setAttachedProducts] = useState<Product[]>([]);
   const [isSaving, setIsSaving] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
 
   // Cấu hình Toolbar cho WYSIWYG (Quill)
   const modules = {
@@ -80,6 +84,45 @@ const AdminNews: React.FC = () => {
     'list', 'indent',
     'link', 'image', 'video'
   ];
+
+  // Hàm upload ảnh lên S3
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      alert('Vui lòng chỉ chọn file ảnh.');
+      return;
+    }
+
+    setIsUploading(true);
+    try {
+      const token = localStorage.getItem('adminToken');
+      
+      // 1. Lấy Presigned URL
+      const { data } = await axios.post(`${CONFIG.API_URL}/admin/s3/upload-url`, {
+        fileName: file.name,
+        fileType: file.type
+      }, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      const { uploadUrl, fileUrl } = data;
+
+      // 2. Upload trực tiếp lên S3
+      await axios.put(uploadUrl, file, {
+        headers: { 'Content-Type': file.type }
+      });
+
+      // 3. Cập nhật thumbnail
+      setThumbnail(fileUrl);
+    } catch (error: any) {
+      console.error('Lỗi upload tin tức:', error);
+      alert('Không thể upload ảnh. Vui lòng kiểm tra lại cấu hình S3.');
+    } finally {
+      setIsUploading(false);
+    }
+  };
 
   // Fetch posts for list view
   const fetchPosts = async () => {
@@ -495,10 +538,34 @@ const AdminNews: React.FC = () => {
 
             <div className="space-y-3">
               <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Ảnh đại diện (Thumbnail)</label>
-              <div className="flex items-center space-x-4">
-                <input type="text" placeholder="Dán link ảnh tại đây..." className="flex-1 bg-gray-50 border-none rounded-2xl px-6 py-4 font-bold text-xs outline-none" value={thumbnail} onChange={(e) => setThumbnail(e.target.value)} />
-                <div className="w-14 h-14 rounded-2xl bg-gray-50 flex items-center justify-center overflow-hidden border border-gray-100 shadow-inner">
-                  {thumbnail ? <img src={thumbnail} className="w-full h-full object-cover" /> : <ImageIcon className="text-gray-200" size={24} />}
+              <div className="space-y-4">
+                <label className={`flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-3xl cursor-pointer transition-all ${isUploading ? 'bg-zinc-50 border-zinc-200 cursor-not-allowed' : 'bg-gray-50 border-gray-100 hover:border-red-400 hover:bg-red-50/30'}`}>
+                  <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                    {isUploading ? (
+                      <>
+                        <Loader2 className="w-8 h-8 mb-2 text-red-600 animate-spin" />
+                        <p className="text-[8px] font-black text-red-600 uppercase tracking-widest">Đang tải lên S3...</p>
+                      </>
+                    ) : (
+                      <>
+                        <Upload className="w-8 h-8 mb-2 text-gray-300" />
+                        <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest text-center px-4">Nhấn để upload ảnh đại diện</p>
+                      </>
+                    )}
+                  </div>
+                  <input type="file" className="hidden" accept="image/*" disabled={isUploading} onChange={handleImageUpload} />
+                </label>
+                
+                <div className="flex items-center space-x-4">
+                  <input type="text" placeholder="Hoặc dán link ảnh..." className="flex-1 bg-gray-50 border-none rounded-2xl px-6 py-4 font-bold text-xs outline-none" value={thumbnail} onChange={(e) => setThumbnail(e.target.value)} />
+                  <div className="w-14 h-14 rounded-2xl bg-gray-50 flex items-center justify-center overflow-hidden border border-gray-100 shadow-inner relative group">
+                    {thumbnail ? (
+                      <>
+                        <img src={thumbnail} className="w-full h-full object-cover" />
+                        <button onClick={() => setThumbnail('')} className="absolute inset-0 bg-red-600/80 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"><X size={16} className="text-white" /></button>
+                      </>
+                    ) : <ImageIcon className="text-gray-200" size={24} />}
+                  </div>
                 </div>
               </div>
             </div>
@@ -512,9 +579,20 @@ const AdminNews: React.FC = () => {
 
         {/* CỤM NÚT LƯU */}
         <div className="grid grid-cols-2 gap-6">
-          <button onClick={() => handleSave('Draft')} disabled={isSaving} className="py-5 bg-gray-100 hover:bg-gray-200 text-gray-900 rounded-[2rem] font-black uppercase text-[10px] tracking-[0.2em] transition-all shadow-lg active:scale-95">Lưu bản nháp</button>
-          <button onClick={() => handleSave('Published')} disabled={isSaving} className="py-5 bg-red-600 hover:bg-red-700 text-white rounded-[2rem] font-black uppercase text-[10px] tracking-[0.3em] transition-all flex items-center justify-center shadow-[0_15px_40px_rgba(220,38,38,0.2)] active:scale-95">
-            {isSaving ? <Loader2 className="animate-spin" size={18} /> : <Save className="mr-3" size={18} />} XUẤT BẢN
+          <button 
+            onClick={() => handleSave('Draft')} 
+            disabled={isSaving || isUploading} 
+            className={`py-5 rounded-[2rem] font-black uppercase text-[10px] tracking-[0.2em] transition-all shadow-lg active:scale-95 ${isSaving || isUploading ? 'bg-gray-100 text-gray-300' : 'bg-gray-100 hover:bg-gray-200 text-gray-900'}`}
+          >
+            Lưu bản nháp
+          </button>
+          <button 
+            onClick={() => handleSave('Published')} 
+            disabled={isSaving || isUploading} 
+            className={`py-5 rounded-[2rem] font-black uppercase text-[10px] tracking-[0.3em] transition-all flex items-center justify-center active:scale-95 ${isSaving || isUploading ? 'bg-red-400 text-white cursor-not-allowed' : 'bg-red-600 hover:bg-red-700 text-white shadow-[0_15px_40px_rgba(220,38,38,0.2)]'}`}
+          >
+            {isSaving || isUploading ? <Loader2 className="animate-spin" size={18} /> : <Save className="mr-3" size={18} />} 
+            {isUploading ? 'ĐANG TẢI ẢNH...' : 'XUẤT BẢN'}
           </button>
         </div>
       </div>

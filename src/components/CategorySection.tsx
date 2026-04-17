@@ -20,6 +20,13 @@ const CategorySection = () => {
       count: 'Joola, Selkirk, Franklin'
     },
     {
+      id: 6,
+      name: 'Tennis',
+      displayName: 'Vợt Tennis',
+      image: 'https://file.hstatic.net/1000292563/file/7_82f68a7ddfc345afb7bc684c84c94f68_1024x1024.jpg',
+      count: 'Wilson, Head, Babolat'
+    },
+    {
       id: 3,
       name: 'Dây Đan Vợt',
       displayName: 'Dây Đan Vợt',
@@ -49,7 +56,7 @@ const CategorySection = () => {
           Danh Mục <span className="text-destructive">Sản Phẩm</span>
         </h2>
         
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
           {categories.map((cat, index) => (
             <motion.div 
               key={cat.id}

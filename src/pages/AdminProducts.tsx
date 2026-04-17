@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Edit, Trash2, ChevronLeft, ChevronRight, Package, X, Save, Info, Settings, Database, Image as ImageIcon, Activity, Search, Filter, ArrowUpDown } from 'lucide-react';
+import { Plus, Edit, Trash2, ChevronLeft, ChevronRight, Package, X, Save, Info, Settings, Database, Image as ImageIcon, Activity, Search, Filter, ArrowUpDown, Upload, Loader2 } from 'lucide-react';
 import CONFIG from '@/lib/config';
+import axios from 'axios';
 
 interface IVariant {
   size?: string;
@@ -52,6 +53,7 @@ const AdminProducts: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<IProduct | null>(null);
   const [formError, setFormError] = useState('');
+  const [isUploading, setIsUploading] = useState(false);
 
   const categories = ['Cầu lông', 'Pickleball', 'Tennis', 'Dây Đan Vợt', 'Giày Thể Thao', 'Phụ Kiện'];
 
@@ -68,6 +70,58 @@ const AdminProducts: React.FC = () => {
   };
 
   const [formData, setFormData] = useState(initialFormState);
+
+  // Hàm xử lý upload ảnh lên S3 qua Presigned URL
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: 'main' | 'gallery', index?: number) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Kiểm tra định dạng
+    if (!file.type.startsWith('image/')) {
+      alert('Vui lòng chỉ chọn file ảnh.');
+      return;
+    }
+
+    // Kiểm tra dung lượng (Ví dụ < 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      alert('Dung lượng ảnh quá lớn (tối đa 5MB).');
+      return;
+    }
+
+    setIsUploading(true);
+    try {
+      const token = localStorage.getItem('adminToken');
+      
+      // 1. Lấy Presigned URL từ Backend
+      const { data } = await axios.post(`${CONFIG.API_URL}/admin/s3/upload-url`, {
+        fileName: file.name,
+        fileType: file.type
+      }, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      const { uploadUrl, fileUrl } = data;
+
+      // 2. Đẩy ảnh trực tiếp lên S3 (không qua backend)
+      await axios.put(uploadUrl, file, {
+        headers: { 'Content-Type': file.type }
+      });
+
+      // 3. Cập nhật URL vào Form
+      if (type === 'main') {
+        setFormData(prev => ({ ...prev, mainImage: fileUrl }));
+      } else if (type === 'gallery' && index !== undefined) {
+        const newGallery = [...formData.gallery];
+        newGallery[index] = fileUrl;
+        setFormData(prev => ({ ...prev, gallery: newGallery }));
+      }
+    } catch (error: any) {
+      console.error('Lỗi upload:', error);
+      alert('Không thể upload ảnh. Vui lòng kiểm tra lại cấu hình S3 trong file .env');
+    } finally {
+      setIsUploading(false);
+    }
+  };
 
   const fetchProducts = async () => {
     setLoading(true);
@@ -422,12 +476,68 @@ const AdminProducts: React.FC = () => {
 
               {activeTab === 'images' && (
                 <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4">
-                  <div className="space-y-3"><label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Ảnh đại diện (URL)</label><input type="text" required className="form-input-custom" value={formData.mainImage} onChange={e => setFormData({...formData, mainImage: e.target.value})} /></div>
+                  {/* Ảnh đại diện */}
+                  <div className="space-y-4">
+                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Ảnh đại diện sản phẩm</label>
+                    <div className="flex flex-col md:flex-row gap-6 items-start">
+                      {formData.mainImage && (
+                        <div className="relative group">
+                          <img src={formData.mainImage} alt="Preview" className="w-40 h-40 object-cover rounded-[2rem] border-2 border-red-100 shadow-xl" />
+                          <button type="button" onClick={() => setFormData({...formData, mainImage: ''})} className="absolute -top-2 -right-2 p-2 bg-white text-red-600 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-all"><X size={16} /></button>
+                        </div>
+                      )}
+                      <div className="flex-1 w-full">
+                        <label className={`flex flex-col items-center justify-center w-full h-40 border-2 border-dashed rounded-[2rem] cursor-pointer transition-all ${isUploading ? 'bg-gray-100 border-gray-200 cursor-not-allowed' : 'bg-white border-gray-200 hover:border-red-400 hover:bg-red-50/30'}`}>
+                          <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                            {isUploading ? (
+                              <>
+                                <Loader2 className="w-10 h-10 mb-3 text-red-600 animate-spin" />
+                                <p className="text-[10px] font-black text-red-600 uppercase tracking-widest">Đang tải ảnh lên S3...</p>
+                              </>
+                            ) : (
+                              <>
+                                <Upload className="w-10 h-10 mb-3 text-gray-400" />
+                                <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Nhấn để chọn hoặc kéo thả ảnh</p>
+                                <p className="text-[8px] text-gray-400 mt-1 uppercase">PNG, JPG, WEBP (Tối đa 5MB)</p>
+                              </>
+                            )}
+                          </div>
+                          <input type="file" className="hidden" accept="image/*" disabled={isUploading} onChange={(e) => handleImageUpload(e, 'main')} />
+                        </label>
+                        <div className="mt-4">
+                          <label className="text-[8px] font-black text-gray-300 uppercase tracking-widest block mb-2">Hoặc dán URL ảnh trực tiếp:</label>
+                          <input type="text" className="form-input-custom !py-3 !text-xs" value={formData.mainImage} onChange={e => setFormData({...formData, mainImage: e.target.value})} placeholder="https://..." />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Bộ sưu tập ảnh */}
                   <div className="pt-10 border-t space-y-6">
-                    <div className="flex justify-between items-center"><label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Bộ sưu tập ảnh</label><button type="button" onClick={() => setFormData({...formData, gallery: [...formData.gallery, '']})} className="text-[10px] font-black text-blue-600 uppercase tracking-widest underline decoration-2 underline-offset-4">Thêm ảnh mới</button></div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="flex justify-between items-center">
+                      <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Bộ sưu tập ảnh ({formData.gallery.length})</label>
+                      <button type="button" onClick={() => setFormData({...formData, gallery: [...formData.gallery, '']})} className="text-[10px] font-black text-blue-600 uppercase tracking-widest underline decoration-2 underline-offset-4">Thêm ô nhập</button>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                       {formData.gallery.map((g, i) => (
-                        <div key={i} className="flex gap-3"><input type="text" className="form-input-custom text-xs" value={g} onChange={e => { const ng = [...formData.gallery]; ng[i] = e.target.value; setFormData({...formData, gallery: ng}) }} /><button type="button" onClick={() => setFormData({...formData, gallery: formData.gallery.filter((_, idx) => idx !== i)})} className="p-4 text-red-400 hover:text-red-600 transition-all"><X size={18} /></button></div>
+                        <div key={i} className="bg-white p-6 rounded-[2rem] border border-gray-100 shadow-sm space-y-4">
+                          <div className="flex gap-4 items-center">
+                            {g ? (
+                              <img src={g} alt="" className="w-16 h-16 object-cover rounded-xl border border-gray-100" />
+                            ) : (
+                              <div className="w-16 h-16 bg-gray-50 rounded-xl flex items-center justify-center text-gray-300"><ImageIcon size={24} /></div>
+                            )}
+                            <div className="flex-1">
+                              <label className={`block text-center py-2 px-4 rounded-xl text-[8px] font-black uppercase tracking-widest border border-dashed cursor-pointer transition-all ${isUploading ? 'bg-gray-50 text-gray-300 border-gray-200' : 'bg-blue-50 text-blue-600 border-blue-200 hover:bg-blue-100'}`}>
+                                {isUploading ? 'Đang tải...' : 'Chọn file upload'}
+                                <input type="file" className="hidden" accept="image/*" disabled={isUploading} onChange={(e) => handleImageUpload(e, 'gallery', i)} />
+                              </label>
+                            </div>
+                            <button type="button" onClick={() => setFormData({...formData, gallery: formData.gallery.filter((_, idx) => idx !== i)})} className="p-2 text-red-300 hover:text-red-600 transition-all"><Trash2 size={16} /></button>
+                          </div>
+                          <input type="text" className="form-input-custom !py-3 !text-[10px]" value={g} onChange={e => { const ng = [...formData.gallery]; ng[i] = e.target.value; setFormData({...formData, gallery: ng}) }} placeholder="Dán URL ảnh hoặc upload file..." />
+                        </div>
                       ))}
                     </div>
                   </div>
@@ -461,8 +571,13 @@ const AdminProducts: React.FC = () => {
               )}
 
               <div className="mt-12 flex gap-6 sticky bottom-0 bg-gray-50/80 backdrop-blur-md p-4 rounded-[2rem]">
-                <button type="submit" className="flex-1 bg-red-600 hover:bg-red-700 text-white py-6 rounded-[2rem] font-black uppercase tracking-[0.2em] shadow-2xl shadow-red-200 transition-all active:scale-95 flex items-center justify-center">
-                  <Save size={24} className="mr-3" /> CẬP NHẬT HỆ THỐNG
+                <button 
+                  type="submit" 
+                  disabled={isUploading}
+                  className={`flex-1 py-6 rounded-[2rem] font-black uppercase tracking-[0.2em] shadow-2xl transition-all active:scale-95 flex items-center justify-center ${isUploading ? 'bg-gray-400 cursor-not-allowed shadow-none' : 'bg-red-600 hover:bg-red-700 text-white shadow-red-200'}`}
+                >
+                  {isUploading ? <Loader2 className="w-6 h-6 animate-spin mr-3" /> : <Save size={24} className="mr-3" />}
+                  {isUploading ? 'ĐANG TẢI ẢNH...' : 'CẬP NHẬT HỆ THỐNG'}
                 </button>
                 <button type="button" onClick={() => setIsModalOpen(false)} className="px-12 bg-white text-gray-400 hover:text-gray-900 py-6 rounded-[2rem] font-black uppercase tracking-[0.2em] border border-gray-100 hover:bg-gray-50 transition-all">Đóng</button>
               </div>
