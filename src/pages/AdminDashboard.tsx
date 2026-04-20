@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '@/lib/axios';
 import { 
   Package, 
   ShoppingCart, 
@@ -42,10 +42,7 @@ const AdminDashboard: React.FC = () => {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const token = localStorage.getItem('adminToken');
-        const { data } = await axios.get(`${CONFIG.API_URL}/admin/stats`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
+        const { data } = await api.get('/admin/stats');
         setStats(data);
       } catch (error) {
         console.error('Lỗi lấy thống kê:', error);

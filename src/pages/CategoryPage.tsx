@@ -120,7 +120,7 @@ const CategoryPage: React.FC = () => {
                   {availableBrands.map((b) => (
                     <button 
                       key={b}
-                      onClick={() => setBrand(b)}
+                      onClick={() => { setBrand(b); setPage(1); }}
                       className={`px-4 py-2 rounded-xl text-xs font-bold text-left transition-all ${brand === b ? 'bg-red-600 text-white shadow-lg shadow-red-100' : 'bg-gray-50 text-gray-500 hover:bg-gray-100'}`}
                     >
                       {b}

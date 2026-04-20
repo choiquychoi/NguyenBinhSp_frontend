@@ -19,7 +19,7 @@ import {
   Upload,
   X
 } from 'lucide-react';
-import CONFIG from '@/lib/config';
+import api from '@/lib/axios';
 import axios from 'axios';
 
 interface Product {
@@ -97,19 +97,15 @@ const AdminNews: React.FC = () => {
 
     setIsUploading(true);
     try {
-      const token = localStorage.getItem('adminToken');
-      
-      // 1. Lấy Presigned URL
-      const { data } = await axios.post(`${CONFIG.API_URL}/admin/s3/upload-url`, {
+      // 1. Lấy Presigned URL qua api bảo mật
+      const { data } = await api.post('/admin/s3/upload-url', {
         fileName: file.name,
         fileType: file.type
-      }, {
-        headers: { 'Authorization': `Bearer ${token}` }
       });
 
       const { uploadUrl, fileUrl } = data;
 
-      // 2. Upload trực tiếp lên S3
+      // 2. Upload trực tiếp lên S3 - Dùng axios gốc
       await axios.put(uploadUrl, file, {
         headers: { 'Content-Type': file.type }
       });
@@ -118,7 +114,7 @@ const AdminNews: React.FC = () => {
       setThumbnail(fileUrl);
     } catch (error: any) {
       console.error('Lỗi upload tin tức:', error);
-      alert('Không thể upload ảnh. Vui lòng kiểm tra lại cấu hình S3.');
+      alert('Không thể upload ảnh. Vui lòng kiểm tra cấu hình.');
     } finally {
       setIsUploading(false);
     }
@@ -128,18 +124,8 @@ const AdminNews: React.FC = () => {
   const fetchPosts = async () => {
     setIsLoadingList(true);
     try {
-      const token = localStorage.getItem('adminToken');
-      const res = await fetch(`${CONFIG.API_URL}/admin/all-posts?page=${currentPage}&limit=10`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
+      const { data } = await api.get(`/admin/all-posts?page=${currentPage}&limit=10`);
       
-      if (res.status === 401) {
-        alert('Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại!');
-        return;
-      }
-
-      const data = await res.json();
-      // Đảm bảo posts luôn là mảng để không bị lỗi .map
       if (data.posts) {
         setPosts(data.posts);
         setTotalPages(data.totalPages);
@@ -149,7 +135,7 @@ const AdminNews: React.FC = () => {
       }
     } catch (error) {
       console.error('Lỗi lấy danh sách bài viết:', error);
-      setPosts([]); // Reset về mảng trống nếu lỗi
+      setPosts([]);
     } finally {
       setIsLoadingList(false);
     }
@@ -182,8 +168,7 @@ const AdminNews: React.FC = () => {
     const fetchSearchProducts = async () => {
       if (searchProduct.length > 2) {
         try {
-          const res = await fetch(`${CONFIG.API_URL}/products?keyword=${searchProduct}&limit=5&isAdmin=true`);
-          const data = await res.json();
+          const { data } = await api.get(`/products?keyword=${searchProduct}&limit=5&isAdmin=true`);
           setProducts(data.products || []);
         } catch (error) {
           console.error('Lỗi tìm sản phẩm:', error);
@@ -200,16 +185,7 @@ const AdminNews: React.FC = () => {
     if (!aiPrompt) return;
     setIsAiLoading(true);
     try {
-      const token = localStorage.getItem('adminToken');
-      const res = await fetch(`${CONFIG.API_URL}/admin/ai-writer`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ prompt: aiPrompt, type: category })
-      });
-      const data = await res.json();
+      const { data } = await api.post('/admin/ai-writer', { prompt: aiPrompt, type: category });
       setContent(prev => prev + data.content);
     } catch (error) {
       alert('Lỗi gọi Gemini AI. Hãy kiểm tra API Key!');
@@ -244,14 +220,8 @@ const AdminNews: React.FC = () => {
   const handleDelete = async (id: string) => {
     if (window.confirm('Bạn có chắc chắn muốn xóa bài viết này không?')) {
       try {
-        const token = localStorage.getItem('adminToken');
-        const res = await fetch(`${CONFIG.API_URL}/admin/posts/${id}`, {
-          method: 'DELETE',
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
-        if (res.ok) {
-          fetchPosts();
-        }
+        await api.delete(`/admin/posts/${id}`);
+        fetchPosts();
       } catch (error) {
         alert('Lỗi xóa bài viết!');
       }
@@ -265,7 +235,6 @@ const AdminNews: React.FC = () => {
     }
     setIsSaving(true);
     try {
-      const token = localStorage.getItem('adminToken');
       const postData = {
         title,
         slug,
@@ -278,30 +247,22 @@ const AdminNews: React.FC = () => {
       };
 
       const url = editingPostId 
-        ? `${CONFIG.API_URL}/admin/posts/${editingPostId}`
-        : `${CONFIG.API_URL}/admin/posts`;
+        ? `/admin/posts/${editingPostId}`
+        : `/admin/posts`;
       
-      const method = editingPostId ? 'PUT' : 'POST';
+      const method = editingPostId ? 'put' : 'post';
 
-      const res = await fetch(url, {
-        method,
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify(postData)
-      });
-
-      if (res.ok) {
-        alert(editingPostId ? 'Đã cập nhật bài viết!' : 'Đã tạo bài viết mới!');
-        resetForm();
-        setView('list');
+      if (method === 'put') {
+        await api.put(url, postData);
       } else {
-        const error = await res.json();
-        alert('Lỗi: ' + error.message);
+        await api.post(url, postData);
       }
-    } catch (error) {
-      alert('Lỗi kết nối máy chủ!');
+
+      alert(editingPostId ? 'Đã cập nhật bài viết!' : 'Đã tạo bài viết mới!');
+      resetForm();
+      setView('list');
+    } catch (error: any) {
+      alert('Lỗi lưu bài viết: ' + (error.response?.data?.message || error.message));
     } finally {
       setIsSaving(false);
     }
@@ -324,7 +285,7 @@ const AdminNews: React.FC = () => {
             <h1 className="text-4xl font-black uppercase tracking-tighter italic flex items-center">
               <LayoutGrid size={32} className="mr-4 text-red-600" /> Quản lý tin tức
             </h1>
-            <p className="text-gray-400 text-xs font-bold uppercase tracking-widest mt-2 ml-12">Tổng cộng: {posts.length} bài viết</p>
+            <p className="text-gray-400 text-xs font-bold uppercase tracking-widest mt-2 ml-12">Tổng cộng: {totalPosts} bài viết</p>
           </div>
           <button 
             onClick={() => { resetForm(); setView('editor'); }}

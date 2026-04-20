@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Save, MapPin, Share2, Globe, CheckCircle2, X } from 'lucide-react';
+import api from '@/lib/axios';
 
 const AdminContact: React.FC = () => {
   const navigate = useNavigate();
@@ -19,18 +20,11 @@ const AdminContact: React.FC = () => {
     seoKeywords: '' 
   });
 
-  const handleUnauthorized = () => {
-    localStorage.removeItem('adminToken');
-    navigate('/admin/login');
-  };
-
   useEffect(() => {
     const fetchContact = async () => {
       try {
-        const response = await fetch('http://localhost:5005/api/contact');
-        const data = await response.json();
-        
-        if (response.ok && data) {
+        const { data } = await api.get('/contact');
+        if (data) {
           setFormData({
             companyName: data.companyName || '',
             address: data.address || '',
@@ -53,7 +47,6 @@ const AdminContact: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    const token = localStorage.getItem('adminToken');
 
     const dataToSubmit = {
       ...formData,
@@ -61,24 +54,9 @@ const AdminContact: React.FC = () => {
     };
 
     try {
-      const response = await fetch('http://localhost:5005/api/admin/contact', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify(dataToSubmit)
-      });
-
-      if (response.status === 401) {
-        handleUnauthorized();
-        return;
-      }
-
-      if (response.ok) {
-        setSuccess(true);
-        setTimeout(() => setSuccess(false), 3000);
-      }
+      await api.put('/admin/contact', dataToSubmit);
+      setSuccess(true);
+      setTimeout(() => setSuccess(false), 3000);
     } catch (error) {
       alert('Lỗi cập nhật hệ thống');
     } finally {

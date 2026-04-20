@@ -32,11 +32,11 @@ const FeaturedProducts = () => {
     const fetchProducts = async () => {
       try {
         setLoading(true);
-        const { data } = await axios.get('http://localhost:5005/api/products');
-        // Lấy các sản phẩm có thuộc tính isFeatured = true
-        setProducts(data.products.filter((p: IProduct) => p.isFeatured));
+        // Gọi đích danh các sản phẩm nổi bật (đã được Backend sắp xếp theo featuredAt)
+        const { data } = await axios.get('http://localhost:5005/api/products?isFeatured=true&limit=20');
+        setProducts(data.products);
       } catch (error) {
-        console.error('Error fetching products:', error);
+        console.error('Error fetching featured products:', error);
       } finally {
         setLoading(false);
       }

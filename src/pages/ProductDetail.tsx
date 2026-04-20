@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { ShoppingCart, Zap, ShieldCheck, Truck, RefreshCw, ChevronRight, Minus, Plus } from 'lucide-react';
+import { motion } from 'framer-motion';
 import SEO from '../components/SEO';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { useCart } from '@/context/CartContext';
 import CONFIG from '@/lib/config';
+import infographic from '@/assets/inforgraphic.png';
 
 interface IProduct {
   _id: string;
@@ -294,6 +296,28 @@ const ProductDetail: React.FC = () => {
               </div>
             )}
           </div>
+        </div>
+      </section>
+
+      {/* TẤM ẢNH INFOGRAPHIC THƯƠNG HIỆU - ĐÃ PHÌNH TO */}
+      <section className="py-10 bg-white">
+        <div className="max-w-7xl mx-auto px-4">
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.98 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 1 }}
+            className="rounded-[2.5rem] md:rounded-[4rem] overflow-hidden shadow-[0_50px_100px_-20px_rgba(0,0,0,0.15)] border border-gray-100 group"
+          >
+            <img 
+              src={infographic} 
+              alt="Nguyễn Bính Sports Infographic" 
+              className="w-full h-auto transition-transform duration-1000 group-hover:scale-105"
+            />
+          </motion.div>
+          <p className="text-center mt-8 text-[11px] font-black uppercase tracking-[0.5em] text-gray-200">
+            Professional Equipment — Authentic Quality
+          </p>
         </div>
       </section>
 

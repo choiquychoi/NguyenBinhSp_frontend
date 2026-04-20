@@ -16,19 +16,17 @@ import {
   Mail,
   User,
   ShoppingBag,
-  Trash2
+  Trash2,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Card, 
   CardContent, 
-  CardHeader, 
-  CardTitle 
 } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import CONFIG from '@/lib/config';
+import api from '@/lib/axios';
 
 interface IOrder {
   _id: string;
@@ -62,16 +60,19 @@ const AdminOrders = () => {
   const [loading, setLoading] = useState(true);
   const [selectedOrder, setSelectedOrder] = useState<IOrder | null>(null);
   const [filterStatus, setFilterStatus] = useState('All');
+  
+  // State phân trang
+  const [page, setPage] = useState(1);
+  const [pages, setPages] = useState(1);
+  const [totalOrders, setTotalOrders] = useState(0);
 
   const fetchOrders = async () => {
     setLoading(true);
     try {
-      const token = localStorage.getItem('adminToken');
-      const res = await fetch(`${CONFIG.API_URL}/orders/admin/all`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      const data = await res.json();
-      setOrders(data);
+      const { data } = await api.get(`/orders/admin/all?page=${page}&limit=10&status=${filterStatus}`);
+      setOrders(data.orders);
+      setPages(data.pages);
+      setTotalOrders(data.total);
     } catch (error) {
       console.error('Lỗi lấy danh sách đơn hàng:', error);
     } finally {
@@ -81,24 +82,19 @@ const AdminOrders = () => {
 
   useEffect(() => {
     fetchOrders();
-  }, []);
+  }, [page, filterStatus]);
+
+  const handleStatusFilterChange = (status: string) => {
+    setFilterStatus(status);
+    setPage(1); // Reset về trang 1 khi đổi bộ lọc
+  };
 
   const updateOrderStatus = async (id: string, newStatus: string) => {
     try {
-      const token = localStorage.getItem('adminToken');
-      const res = await fetch(`${CONFIG.API_URL}/orders/${id}/status`, {
-        method: 'PATCH',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}` 
-        },
-        body: JSON.stringify({ status: newStatus })
-      });
-      if (res.ok) {
-        fetchOrders();
-        if (selectedOrder?._id === id) {
-          setSelectedOrder({ ...selectedOrder, status: newStatus as any });
-        }
+      await api.patch(`/orders/${id}/status`, { status: newStatus });
+      fetchOrders();
+      if (selectedOrder?._id === id) {
+        setSelectedOrder({ ...selectedOrder, status: newStatus as any });
       }
     } catch (error) {
       console.error('Lỗi cập nhật trạng thái:', error);
@@ -109,24 +105,14 @@ const AdminOrders = () => {
     if (!window.confirm('Bạn có chắc chắn muốn xóa đơn hàng này? Hành động này không thể hoàn tác.')) return;
     
     try {
-      const token = localStorage.getItem('adminToken');
-      const res = await fetch(`${CONFIG.API_URL}/orders/${id}`, {
-        method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      if (res.ok) {
-        alert('Xóa đơn hàng thành công!');
-        setSelectedOrder(null);
-        fetchOrders();
-      }
+      await api.delete(`/orders/${id}`);
+      alert('Xóa đơn hàng thành công!');
+      setSelectedOrder(null);
+      fetchOrders();
     } catch (error) {
       console.error('Lỗi xóa đơn hàng:', error);
     }
   };
-
-  const filteredOrders = filterStatus === 'All' 
-    ? orders 
-    : orders.filter(o => o.status === filterStatus);
 
   return (
     <div className="p-8 bg-gray-50 min-h-screen font-sans">
@@ -137,7 +123,7 @@ const AdminOrders = () => {
             Quản lý <span className="text-red-600">đơn hàng</span>
           </h1>
           <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">
-            Theo dõi và xử lý đơn hàng từ khách hàng toàn quốc
+            Tổng cộng: {totalOrders} đơn hàng | Đang hiển thị trang {page}/{pages}
           </p>
         </div>
         
@@ -146,7 +132,7 @@ const AdminOrders = () => {
             {['All', 'Pending', 'Confirmed', 'Shipping', 'Delivered'].map((s) => (
               <button
                 key={s}
-                onClick={() => setFilterStatus(s)}
+                onClick={() => handleStatusFilterChange(s)}
                 className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${filterStatus === s ? 'bg-red-600 text-white shadow-lg shadow-red-100' : 'text-gray-400 hover:text-gray-600'}`}
               >
                 {s === 'All' ? 'Tất cả' : statusConfig[s as keyof typeof statusConfig].label}
@@ -164,56 +150,91 @@ const AdminOrders = () => {
               <div className="animate-spin text-red-600 inline-block mb-4"><Package size={48} /></div>
               <p className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-400">Đang tải danh sách đơn hàng...</p>
             </div>
-          ) : filteredOrders.length === 0 ? (
+          ) : orders.length === 0 ? (
             <div className="bg-white rounded-[2rem] p-20 text-center border border-gray-100 shadow-sm">
               <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-300 italic">Không có đơn hàng nào phù hợp</p>
             </div>
           ) : (
-            filteredOrders.map((order) => (
-              <motion.div
-                layout
-                key={order._id}
-                onClick={() => setSelectedOrder(order)}
-                className={`bg-white p-6 rounded-[2rem] border-2 cursor-pointer transition-all ${selectedOrder?._id === order._id ? 'border-red-600 shadow-xl' : 'border-transparent hover:border-gray-100 shadow-sm'}`}
-              >
-                <div className="flex flex-wrap items-center justify-between gap-4">
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-2xl bg-gray-50 flex items-center justify-center text-gray-400">
-                      <ShoppingBag size={24} />
+            <>
+              {orders.map((order) => (
+                <motion.div
+                  layout
+                  key={order._id}
+                  onClick={() => setSelectedOrder(order)}
+                  className={`bg-white p-6 rounded-[2rem] border-2 cursor-pointer transition-all ${selectedOrder?._id === order._id ? 'border-red-600 shadow-xl' : 'border-transparent hover:border-gray-100 shadow-sm'}`}
+                >
+                  <div className="flex flex-wrap items-center justify-between gap-4">
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 rounded-2xl bg-gray-50 flex items-center justify-center text-gray-400">
+                        <ShoppingBag size={24} />
+                      </div>
+                      <div>
+                        <h3 className="font-black text-sm uppercase tracking-tight">{order.orderNumber}</h3>
+                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{new Date(order.createdAt).toLocaleString('vi-VN')}</p>
+                      </div>
                     </div>
-                    <div>
-                      <h3 className="font-black text-sm uppercase tracking-tight">{order.orderNumber}</h3>
-                      <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{new Date(order.createdAt).toLocaleString('vi-VN')}</p>
+
+                    <div className="flex-1 min-w-[200px]">
+                      <p className="text-xs font-black uppercase text-gray-900">{order.customer.name}</p>
+                      <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{order.customer.phone}</p>
                     </div>
+
+                    <div className="text-right flex items-center gap-4">
+                      <div>
+                        <p className="text-lg font-black text-red-600 tracking-tighter">{order.totalAmount.toLocaleString()}₫</p>
+                        <Badge className={`mt-1 border font-black uppercase text-[8px] tracking-widest px-2 py-0.5 rounded-lg ${statusConfig[order.status].color}`}>
+                          {statusConfig[order.status].label}
+                        </Badge>
+                      </div>
+                      
+                      <button 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          deleteOrder(order._id);
+                        }}
+                        className="p-3 text-gray-300 hover:text-red-600 hover:bg-red-50 rounded-2xl transition-all"
+                        title="Xóa nhanh đơn hàng"
+                      >
+                        <Trash2 size={18} />
+                      </button>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+
+              {/* BỘ PHÂN TRANG */}
+              {pages > 1 && (
+                <div className="flex justify-center items-center gap-4 mt-8 bg-white p-4 rounded-[2rem] shadow-sm border border-gray-100">
+                  <button
+                    disabled={page === 1}
+                    onClick={() => setPage(p => Math.max(1, p - 1))}
+                    className="p-3 hover:bg-gray-100 rounded-xl disabled:opacity-30 transition-all"
+                  >
+                    <ChevronLeft size={20} />
+                  </button>
+                  
+                  <div className="flex gap-2">
+                    {[...Array(pages).keys()].map(x => (
+                      <button
+                        key={x + 1}
+                        onClick={() => setPage(x + 1)}
+                        className={`w-10 h-10 rounded-xl font-black text-xs transition-all ${page === x + 1 ? 'bg-red-600 text-white shadow-lg shadow-red-100' : 'bg-gray-50 text-gray-400 hover:bg-gray-100'}`}
+                      >
+                        {x + 1}
+                      </button>
+                    ))}
                   </div>
 
-                  <div className="flex-1 min-w-[200px]">
-                    <p className="text-xs font-black uppercase text-gray-900">{order.customer.name}</p>
-                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{order.customer.phone}</p>
-                  </div>
-
-                  <div className="text-right flex items-center gap-4">
-                    <div>
-                      <p className="text-lg font-black text-red-600 tracking-tighter">{order.totalAmount.toLocaleString()}₫</p>
-                      <Badge className={`mt-1 border font-black uppercase text-[8px] tracking-widest px-2 py-0.5 rounded-lg ${statusConfig[order.status].color}`}>
-                        {statusConfig[order.status].label}
-                      </Badge>
-                    </div>
-                    
-                    <button 
-                      onClick={(e) => {
-                        e.stopPropagation(); // Ngăn việc nhấn nút xóa làm mở chi tiết đơn hàng
-                        deleteOrder(order._id);
-                      }}
-                      className="p-3 text-gray-300 hover:text-red-600 hover:bg-red-50 rounded-2xl transition-all"
-                      title="Xóa nhanh đơn hàng"
-                    >
-                      <Trash2 size={18} />
-                    </button>
-                  </div>
+                  <button
+                    disabled={page === pages}
+                    onClick={() => setPage(p => Math.min(pages, p + 1))}
+                    className="p-3 hover:bg-gray-100 rounded-xl disabled:opacity-30 transition-all"
+                  >
+                    <ChevronRight size={20} />
+                  </button>
                 </div>
-              </motion.div>
-            ))
+              )}
+            </>
           )}
         </div>
 

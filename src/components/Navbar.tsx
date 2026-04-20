@@ -77,11 +77,11 @@ const Navbar = () => {
     { name: "Cầu Lông", path: "/category/Cầu lông" },
     { name: "Pickleball", path: "/category/Pickleball" },
     { name: "Tennis", path: "/category/Tennis" },
-    { name: "Dây Đan", path: "/category/Dây Đan Vợt" },
     { name: "Giày", path: "/category/Giày Thể Thao" },
     { name: "Phụ Kiện", path: "/category/Phụ Kiện" },
     { name: "Tin tức", path: "/news" },
     { name: "Liên Hệ", path: "/contact" },
+    { name: "Tra cứu đơn", path: "/track-order" },
   ];
 
   return (

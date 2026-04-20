@@ -16,8 +16,7 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
-import CONFIG from '@/lib/config';
+import api from '@/lib/axios';
 
 interface NewsPost {
   _id: string;
@@ -42,11 +41,10 @@ const NewsPage = () => {
     setLoading(true);
     try {
       const categoryParam = category !== 'Tất cả' ? `&category=${category}` : '';
-      const res = await fetch(`${CONFIG.API_URL}/posts?page=${page}&limit=9${categoryParam}`);
-      const data = await res.json();
-      setPosts(data.posts);
-      setTotalPages(data.totalPages);
-      setCurrentPage(data.currentPage);
+      const { data } = await api.get(`/posts?page=${page}&limit=9${categoryParam}`);
+      setPosts(data.posts || []);
+      setTotalPages(data.pages || 1);
+      setCurrentPage(data.page || 1);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (error) {
       console.error("Lỗi lấy danh sách bài viết:", error);

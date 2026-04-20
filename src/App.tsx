@@ -15,6 +15,7 @@ import NewsDetail from './pages/NewsDetail';
 import NewsPage from './pages/NewsPage';
 import Cart from './pages/Cart';
 import Checkout from './pages/Checkout';
+import OrderTracking from './pages/OrderTracking';
 import { CartProvider } from './context/CartContext';
 
 // Component bảo vệ Route Admin
@@ -40,6 +41,7 @@ const App: React.FC = () => {
           <Route path="/news/:slug" element={<NewsDetail />} />
           <Route path="/cart" element={<Cart />} />
           <Route path="/checkout" element={<Checkout />} />
+          <Route path="/track-order" element={<OrderTracking />} />
 
           <Route path="/admin/login" element={<AdminLogin />} />
 

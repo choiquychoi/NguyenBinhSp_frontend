@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Edit, Trash2, ChevronLeft, ChevronRight, Package, X, Save, Info, Settings, Database, Image as ImageIcon, Activity, Search, Filter, ArrowUpDown, Upload, Loader2 } from 'lucide-react';
-import CONFIG from '@/lib/config';
+import api from '@/lib/axios';
 import axios from 'axios';
+import { Plus, Edit, Trash2, ChevronLeft, ChevronRight, Package, X, Save, Info, Settings, Database, Image as ImageIcon, Activity, Search, Filter, ArrowUpDown, Upload, Loader2 } from 'lucide-react';
 
 interface IVariant {
   size?: string;
@@ -41,7 +41,7 @@ const AdminProducts: React.FC = () => {
   const [products, setProducts] = useState<IProduct[]>([]);
   const [loading, setLoading] = useState(true);
   
-  // State Filter & Search (Xử lý tại Backend)
+  // State Filter & Search
   const [page, setPage] = useState(1);
   const [pages, setPages] = useState(1);
   const [keyword, setKeyword] = useState('');
@@ -55,7 +55,7 @@ const AdminProducts: React.FC = () => {
   const [formError, setFormError] = useState('');
   const [isUploading, setIsUploading] = useState(false);
 
-  const categories = ['Cầu lông', 'Pickleball', 'Tennis', 'Dây Đan Vợt', 'Giày Thể Thao', 'Phụ Kiện'];
+  const categories = ['Cầu lông', 'Pickleball', 'Tennis', 'Giày Thể Thao', 'Phụ Kiện'];
 
   const initialFormState = {
     name: '', description: '', price: 0, salePrice: 0, category: 'Cầu lông' as any,
@@ -76,13 +76,11 @@ const AdminProducts: React.FC = () => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Kiểm tra định dạng
     if (!file.type.startsWith('image/')) {
       alert('Vui lòng chỉ chọn file ảnh.');
       return;
     }
 
-    // Kiểm tra dung lượng (Ví dụ < 5MB)
     if (file.size > 5 * 1024 * 1024) {
       alert('Dung lượng ảnh quá lớn (tối đa 5MB).');
       return;
@@ -90,19 +88,15 @@ const AdminProducts: React.FC = () => {
 
     setIsUploading(true);
     try {
-      const token = localStorage.getItem('adminToken');
-      
-      // 1. Lấy Presigned URL từ Backend
-      const { data } = await axios.post(`${CONFIG.API_URL}/admin/s3/upload-url`, {
+      // 1. Lấy Presigned URL từ Backend qua api bảo mật
+      const { data } = await api.post('/admin/s3/upload-url', {
         fileName: file.name,
         fileType: file.type
-      }, {
-        headers: { 'Authorization': `Bearer ${token}` }
       });
 
       const { uploadUrl, fileUrl } = data;
 
-      // 2. Đẩy ảnh trực tiếp lên S3 (không qua backend)
+      // 2. Đẩy ảnh trực tiếp lên S3 - Dùng axios gốc
       await axios.put(uploadUrl, file, {
         headers: { 'Content-Type': file.type }
       });
@@ -117,7 +111,7 @@ const AdminProducts: React.FC = () => {
       }
     } catch (error: any) {
       console.error('Lỗi upload:', error);
-      alert('Không thể upload ảnh. Vui lòng kiểm tra lại cấu hình S3 trong file .env');
+      alert('Không thể upload ảnh. Vui lòng kiểm tra cấu hình.');
     } finally {
       setIsUploading(false);
     }
@@ -126,16 +120,9 @@ const AdminProducts: React.FC = () => {
   const fetchProducts = async () => {
     setLoading(true);
     try {
-      let url = `${CONFIG.API_URL}/products?page=${page}&limit=10&isAdmin=true&sort=${sort}`;
-      if (keyword) url += `&keyword=${keyword}`;
-      if (category) url += `&category=${category}`;
-
-      const response = await fetch(url);
-      const data = await response.json();
-      if (response.ok) {
-        setProducts(data.products);
-        setPages(data.pages);
-      }
+      const { data } = await api.get(`/products?page=${page}&limit=10&isAdmin=true&sort=${sort}${keyword ? `&keyword=${keyword}` : ''}${category ? `&category=${category}` : ''}`);
+      setProducts(data.products);
+      setPages(data.pages);
     } catch (error) {
       console.error('Lỗi khi lấy sản phẩm:', error);
     } finally {
@@ -143,20 +130,13 @@ const AdminProducts: React.FC = () => {
     }
   };
 
-  // Gọi API mỗi khi Filter hoặc Page thay đổi
   useEffect(() => {
     const delayDebounceFn = setTimeout(() => {
       fetchProducts();
-    }, 500); // Debounce 500ms để tránh gọi API liên tục khi gõ search
+    }, 500);
 
     return () => clearTimeout(delayDebounceFn);
   }, [page, keyword, category, sort]);
-
-  const handleUnauthorized = () => {
-    localStorage.removeItem('adminToken');
-    alert('Phiên đăng nhập hết hạn.');
-    navigate('/admin/login');
-  };
 
   const handleAddClick = () => {
     setEditingProduct(null);
@@ -182,22 +162,16 @@ const AdminProducts: React.FC = () => {
   const handleDelete = async (id: string) => {
     if (window.confirm('Bạn có chắc chắn muốn xóa sản phẩm này?')) {
       try {
-        const token = localStorage.getItem('adminToken');
-        const response = await fetch(`${CONFIG.API_URL}/admin/products/${id}`, {
-          method: 'DELETE',
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
-        if (response.status === 401) handleUnauthorized();
-        if (response.ok) fetchProducts();
+        await api.delete(`/admin/products/${id}`);
+        fetchProducts();
       } catch (error) { alert('Lỗi khi xóa'); }
     }
   };
 
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const token = localStorage.getItem('adminToken');
-    const url = editingProduct ? `${CONFIG.API_URL}/admin/products/${editingProduct._id}` : `${CONFIG.API_URL}/admin/products`;
-    const method = editingProduct ? 'PUT' : 'POST';
+    const url = editingProduct ? `/admin/products/${editingProduct._id}` : `/admin/products`;
+    const method = editingProduct ? 'put' : 'post';
 
     const cleanedData = {
       ...formData,
@@ -207,17 +181,16 @@ const AdminProducts: React.FC = () => {
     };
 
     try {
-      const response = await fetch(url, {
-        method,
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-        body: JSON.stringify(cleanedData),
-      });
-      if (response.status === 401) { handleUnauthorized(); return; }
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.message || 'Lỗi lưu');
+      if (method === 'put') {
+        await api.put(url, cleanedData);
+      } else {
+        await api.post(url, cleanedData);
+      }
       setIsModalOpen(false);
       fetchProducts();
-    } catch (err: any) { setFormError(err.message); }
+    } catch (err: any) { 
+      setFormError(err.response?.data?.message || 'Lỗi lưu sản phẩm'); 
+    }
   };
 
   return (
@@ -233,9 +206,8 @@ const AdminProducts: React.FC = () => {
         </button>
       </div>
 
-      {/* SEARCH & FILTER BAR (NEW) */}
+      {/* SEARCH & FILTER BAR */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8 bg-white p-6 rounded-[2.5rem] shadow-sm border border-gray-100">
-        {/* Search */}
         <div className="md:col-span-2 relative">
           <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-300" size={18} />
           <input 
@@ -247,7 +219,6 @@ const AdminProducts: React.FC = () => {
           />
         </div>
 
-        {/* Category Filter */}
         <div className="relative">
           <Filter className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-300" size={16} />
           <select 
@@ -260,7 +231,6 @@ const AdminProducts: React.FC = () => {
           </select>
         </div>
 
-        {/* Sort */}
         <div className="relative">
           <ArrowUpDown className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-300" size={16} />
           <select 
@@ -335,7 +305,7 @@ const AdminProducts: React.FC = () => {
         </div>
       </div>
 
-      {/* MODAL FORM (Giữ nguyên logic bên trong) */}
+      {/* MODAL FORM */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-[60]">
           <div className="bg-white rounded-[3rem] max-w-5xl w-full h-[90vh] flex flex-col shadow-2xl overflow-hidden border border-white/20">
@@ -476,7 +446,6 @@ const AdminProducts: React.FC = () => {
 
               {activeTab === 'images' && (
                 <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4">
-                  {/* Ảnh đại diện */}
                   <div className="space-y-4">
                     <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Ảnh đại diện sản phẩm</label>
                     <div className="flex flex-col md:flex-row gap-6 items-start">
@@ -512,7 +481,6 @@ const AdminProducts: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* Bộ sưu tập ảnh */}
                   <div className="pt-10 border-t space-y-6">
                     <div className="flex justify-between items-center">
                       <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Bộ sưu tập ảnh ({formData.gallery.length})</label>
