@@ -67,7 +67,7 @@ const Cart = () => {
           {/* CỘT TRÁI: DANH SÁCH SẢN PHẨM */}
           <div className="lg:col-span-8 space-y-6">
             {cart.map((item) => (
-              <Card key={item.cartItemId} className="overflow-hidden border-none shadow-[0_10px_30px_rgba(0,0,0,0.03)] rounded-[2rem] bg-white group transition-all duration-500 hover:shadow-[0_20px_50px_rgba(0,0,0,0.08)]">
+              <Card key={item._id} className="overflow-hidden border-none shadow-[0_10px_30px_rgba(0,0,0,0.03)] rounded-[2rem] bg-white group transition-all duration-500 hover:shadow-[0_20px_50px_rgba(0,0,0,0.08)]">
                 <CardContent className="p-0">
                   <div className="flex flex-col sm:flex-row items-center">
                     {/* Ảnh sản phẩm */}
@@ -92,16 +92,9 @@ const Cart = () => {
                               {item.name}
                             </h3>
                           </Link>
-                          {/* Hiển thị size/color nếu có */}
-                          {(item.selectedSize || item.selectedColor) && (
-                            <div className="flex gap-2 mt-1">
-                              {item.selectedSize && <span className="text-[10px] font-bold text-zinc-400">Size: {item.selectedSize}</span>}
-                              {item.selectedColor && <span className="text-[10px] font-bold text-zinc-400">Màu: {item.selectedColor}</span>}
-                            </div>
-                          )}
                         </div>
                         <button 
-                          onClick={() => removeFromCart(item.cartItemId)}
+                          onClick={() => removeFromCart(item._id)}
                           className="text-zinc-300 hover:text-destructive transition-colors p-2 hover:bg-destructive/5 rounded-full"
                         >
                           <Trash2 size={20} />
@@ -112,14 +105,14 @@ const Cart = () => {
                         {/* Bộ tăng giảm số lượng */}
                         <div className="flex items-center bg-zinc-50 rounded-xl p-1 border border-zinc-100">
                           <button 
-                            onClick={() => updateQuantity(item.cartItemId, item.quantity - 1)}
+                            onClick={() => updateQuantity(item._id, item.quantity - 1)}
                             className="w-10 h-10 flex items-center justify-center hover:bg-white hover:shadow-sm rounded-lg transition-all text-zinc-400 hover:text-destructive"
                           >
                             <Minus size={16} />
                           </button>
                           <span className="w-12 text-center font-black text-sm">{item.quantity}</span>
                           <button 
-                            onClick={() => updateQuantity(item.cartItemId, item.quantity + 1)}
+                            onClick={() => updateQuantity(item._id, item.quantity + 1)}
                             className="w-10 h-10 flex items-center justify-center hover:bg-white hover:shadow-sm rounded-lg transition-all text-zinc-400 hover:text-destructive"
                           >
                             <Plus size={16} />

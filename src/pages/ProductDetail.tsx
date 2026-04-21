@@ -21,7 +21,6 @@ interface IProduct {
   mainImage: string;
   gallery: string[];
   specifications: any;
-  variants: { size?: string; color?: string; stock: number }[];
   slug: string;
 }
 
@@ -33,7 +32,6 @@ const ProductDetail: React.FC = () => {
   const [product, setProduct] = useState<IProduct | null>(null);
   const [activeImg, setActiveImg] = useState('');
   const [quantity, setQuantity] = useState(1);
-  const [selectedVariant, setSelectedVariant] = useState<{ size?: string; color?: string; stock: number } | null>(null);
   const [showSpecs, setShowSpecs] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -46,12 +44,6 @@ const ProductDetail: React.FC = () => {
         const data = await res.json();
         setProduct(data);
         setActiveImg(data.mainImage);
-        
-        // Mặc định chọn biến thể đầu tiên còn hàng
-        if (data.variants && data.variants.length > 0) {
-          const available = data.variants.find((v: any) => v.stock > 0);
-          if (available) setSelectedVariant(available);
-        }
       } catch (error) {
         console.error('Lỗi tải dữ liệu:', error);
       } finally {
@@ -66,31 +58,20 @@ const ProductDetail: React.FC = () => {
   if (!product) return <div className="min-h-screen flex items-center justify-center font-bold">Không tìm thấy sản phẩm!</div>;
 
   const discountPercentage = product.salePrice ? Math.round(((product.price - product.salePrice) / product.price) * 100) : 0;
-  const getVariantLabel = (v: any) => `${v.size || ''}${v.color ? (v.size ? ' - ' : '') + v.color : ''}`;
 
   const handleAddToCart = () => {
-    if (product.variants && product.variants.length > 0 && !selectedVariant) {
-      alert('Vui lòng chọn phân loại sản phẩm!');
-      return;
-    }
-    
     addToCart({
       _id: product._id,
       name: product.name,
       price: product.salePrice || product.price,
       image: product.mainImage,
       category: product.category,
-      slug: product.slug,
-      variantLabel: selectedVariant ? getVariantLabel(selectedVariant) : undefined
+      slug: product.slug
     }, quantity);
     alert('Đã thêm sản phẩm vào giỏ hàng!');
   };
 
   const handleBuyNow = () => {
-    if (product.variants && product.variants.length > 0 && !selectedVariant) {
-      alert('Vui lòng chọn phân loại sản phẩm!');
-      return;
-    }
     handleAddToCart();
     navigate('/cart');
   };
@@ -152,41 +133,6 @@ const ProductDetail: React.FC = () => {
                 <div className="text-4xl font-black text-red-600">{(product.salePrice || product.price).toLocaleString()}đ</div>
                 {product.salePrice && <div className="text-xl font-bold text-gray-300 line-through mb-1">{product.price.toLocaleString()}đ</div>}
               </div>
-
-              {/* CHỌN BIẾN THỂ */}
-              {product.variants && product.variants.length > 0 && (
-                <div className="space-y-4">
-                  <div className="flex justify-between items-center">
-                    <span className="text-xs font-black uppercase tracking-widest text-gray-400">Chọn phân loại:</span>
-                    {selectedVariant && (
-                      <span className="text-[10px] font-bold text-green-600 uppercase tracking-widest">
-                        Còn lại: {selectedVariant.stock} sản phẩm
-                      </span>
-                    )}
-                  </div>
-                  <div className="flex flex-wrap gap-3">
-                    {product.variants.map((v, idx) => {
-                      const label = getVariantLabel(v);
-                      const isSelected = selectedVariant && getVariantLabel(selectedVariant) === label;
-                      const isOutOfStock = v.stock <= 0;
-
-                      return (
-                        <button
-                          key={idx}
-                          disabled={isOutOfStock}
-                          onClick={() => setSelectedVariant(v)}
-                          className={`px-6 py-3 rounded-2xl text-[11px] font-black uppercase tracking-widest transition-all border-2 
-                            ${isSelected ? 'border-red-600 bg-red-50 text-red-600 shadow-lg shadow-red-100' : 'border-gray-100 bg-white text-gray-400 hover:border-gray-200'}
-                            ${isOutOfStock ? 'opacity-30 cursor-not-allowed border-dashed' : 'cursor-pointer'}
-                          `}
-                        >
-                          {label} {isOutOfStock && '(Hết)'}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
 
               <div className="space-y-6">
                 <div className="flex items-center space-x-6">

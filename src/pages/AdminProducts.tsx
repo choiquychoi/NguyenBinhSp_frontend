@@ -4,12 +4,6 @@ import api from '@/lib/axios';
 import axios from 'axios';
 import { Plus, Edit, Trash2, ChevronLeft, ChevronRight, Package, X, Save, Info, Settings, Database, Image as ImageIcon, Activity, Search, Filter, ArrowUpDown, Upload, Loader2 } from 'lucide-react';
 
-interface IVariant {
-  size?: string;
-  color?: string;
-  stock: number;
-}
-
 interface IProduct {
   _id: string;
   name: string;
@@ -28,8 +22,6 @@ interface IProduct {
   };
   mainImage: string;
   gallery: string[];
-  variants: IVariant[];
-  lowStockAlert: number;
   isFeatured: boolean;
   isFocus: boolean;
   isActive: boolean;
@@ -65,8 +57,8 @@ const AdminProducts: React.FC = () => {
       pickleball: { surface: '', core: '', upaACert: false, usapCert: false, warranty: '', shape: '', length: '', width: '', handleType: '', handleLength: '', handleCircumference: '' },
       tennis: { weight: '', headSize: '', stringPattern: '', gripSize: '', balancePoint: '', frameLength: '', material: '', balanceType: '' }
     },
-    mainImage: '', gallery: [''], variants: [{ size: '', color: '', stock: 0 }],
-    lowStockAlert: 10, isFeatured: false, isFocus: false, isActive: true
+    mainImage: '', gallery: [''],
+    isFeatured: false, isFocus: false, isActive: true
   };
 
   const [formData, setFormData] = useState(initialFormState);
@@ -151,8 +143,7 @@ const AdminProducts: React.FC = () => {
     setFormData({
       ...initialFormState,
       ...product,
-      gallery: product.gallery && product.gallery.length > 0 ? product.gallery : [''],
-      variants: product.variants && product.variants.length > 0 ? product.variants : [{ size: '', color: '', stock: 0 }]
+      gallery: product.gallery && product.gallery.length > 0 ? product.gallery : ['']
     });
     setFormError('');
     setActiveTab('basic');
@@ -170,6 +161,15 @@ const AdminProducts: React.FC = () => {
 
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setFormError('');
+
+    // Frontend Validation
+    if (!formData.name.trim()) return setFormError('Vui lòng nhập tên sản phẩm.');
+    if (!formData.brand.trim()) return setFormError('Vui lòng nhập thương hiệu.');
+    if (!formData.mainImage) return setFormError('Vui lòng upload ảnh đại diện cho sản phẩm.');
+    if (formData.price <= 0) return setFormError('Giá niêm yết phải lớn hơn 0.');
+    if (!formData.description.trim()) return setFormError('Vui lòng nhập mô tả sản phẩm.');
+
     const url = editingProduct ? `/admin/products/${editingProduct._id}` : `/admin/products`;
     const method = editingProduct ? 'put' : 'post';
 
@@ -321,7 +321,6 @@ const AdminProducts: React.FC = () => {
               {[
                 { id: 'basic', label: 'Thông tin chung', icon: Info },
                 { id: 'specs', label: 'Kỹ thuật', icon: Settings },
-                { id: 'inventory', label: 'Biến thể', icon: Database },
                 { id: 'images', label: 'Hình ảnh', icon: ImageIcon },
                 { id: 'status', label: 'Hiển thị', icon: Activity },
               ].map(tab => (
@@ -422,25 +421,6 @@ const AdminProducts: React.FC = () => {
                   ) : (
                     <div className="text-center py-24 bg-white rounded-[2rem] border-2 border-dashed border-gray-100 uppercase text-[10px] font-black text-gray-300 tracking-[0.3em]">Thông số chung</div>
                   )}
-                </div>
-              )}
-
-              {activeTab === 'inventory' && (
-                <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4">
-                  <div className="flex justify-between items-center bg-black p-8 rounded-[2rem] text-white shadow-xl shadow-gray-200">
-                    <div><h4 className="font-black uppercase tracking-tighter text-lg">Biến thể kho hàng</h4><p className="text-[9px] font-bold text-gray-500 uppercase tracking-widest mt-1">Phân loại theo Size và Màu sắc</p></div>
-                    <button type="button" onClick={() => setFormData({...formData, variants: [...formData.variants, { size: '', color: '', stock: 0 }]})} className="bg-white text-black px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest active:scale-95 transition-all">Thêm dòng</button>
-                  </div>
-                  <div className="space-y-4">
-                    {formData.variants.map((v, i) => (
-                      <div key={i} className="flex gap-6 items-end bg-white p-8 rounded-[2rem] border border-gray-100 shadow-sm hover:border-red-100 transition-all">
-                        <div className="flex-1 space-y-2"><label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Kích cỡ</label><input type="text" className="form-input-custom text-sm" value={v.size} onChange={e => { const nv = [...formData.variants]; nv[i].size = e.target.value; setFormData({...formData, variants: nv}) }} /></div>
-                        <div className="flex-1 space-y-2"><label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Màu sắc</label><input type="text" className="form-input-custom text-sm" value={v.color} onChange={e => { const nv = [...formData.variants]; nv[i].color = e.target.value; setFormData({...formData, variants: nv}) }} /></div>
-                        <div className="w-40 space-y-2"><label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Số lượng</label><input type="number" className="form-input-custom text-sm font-black text-red-600" value={v.stock} onChange={e => { const nv = [...formData.variants]; nv[i].stock = Number(e.target.value); setFormData({...formData, variants: nv}) }} /></div>
-                        <button type="button" onClick={() => setFormData({...formData, variants: formData.variants.filter((_, idx) => idx !== i)})} className="p-4 text-red-300 hover:text-red-600 hover:bg-red-50 rounded-2xl transition-all"><Trash2 size={20} /></button>
-                      </div>
-                    ))}
-                  </div>
                 </div>
               )}
 

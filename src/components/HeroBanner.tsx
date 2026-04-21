@@ -3,12 +3,13 @@ import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation, Pagination, Autoplay, EffectFade } from 'swiper/modules';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from "@/components/ui/button";
+import hero_banner from '@/assets/hero_banner.jpg';
 
 const HeroBanner = () => {
   const slides = [
     {
       id: 1,
-      image: 'https://scontent.fsgn5-5.fna.fbcdn.net/v/t39.30808-6/566355824_1400545665405331_1439950902153017502_n.jpg?_nc_cat=108&ccb=1-7&_nc_sid=13d280&_nc_ohc=Om_g5iA5UpYQ7kNvwHvGWOn&_nc_oc=AdogLscOI72ZCNYOeWGj7wbeS4IKcAPUwfGWDiwNLQEVkSJDaNPpVkGw02Ep55Pf220&_nc_zt=23&_nc_ht=scontent.fsgn5-5.fna&_nc_gid=M7qjPklOovSCA2if3v_XPg&_nc_ss=7a3a8&oh=00_Af2ifMIJgUuMf6yX3J17HPngzHNZ2Wrv-nF_6F9wlNVGCw&oe=69E3C5FA',
+      image: hero_banner,
       title: 'CHINH PHỤC ĐỈNH CAO',
       subtitle: 'Trang bị ngay những siêu phẩm cầu lông mới nhất 2026',
       buttonText: 'MUA NGAY',

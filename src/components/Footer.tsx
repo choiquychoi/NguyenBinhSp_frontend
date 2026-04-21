@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Link } from 'react-router-dom';
 import CONFIG from '@/lib/config';
+import logo from '@/assets/logo.jpg';
 
 interface IContact {
   companyName: string;
@@ -71,7 +72,7 @@ const Footer = () => {
             <Link to="/" className="flex items-center gap-4 mb-8 group">
               <div className="w-14 h-14 rounded-full overflow-hidden border-2 border-destructive shadow-xl">
                 <img 
-                  src="https://scontent.fsgn5-5.fna.fbcdn.net/v/t39.30808-1/250153056_2420750178061878_163732344248490005_n.jpg?stp=dst-jpg_s200x200_tt6&_nc_cat=108&ccb=1-7&_nc_sid=2d3e12&_nc_ohc=4LcxbQxebmYQ7kNvwGnlTcP&_nc_oc=AdqyY5Zrf3vGW74Lq5BJ5a0unWs_G_rgiBbVQCTx71XDUXiqap0T08UOuqoceom3Mw0&_nc_zt=24&_nc_ht=scontent.fsgn5-5.fna&_nc_gid=SmN8yB_q2GCTRcE4yJPWqQ&_nc_ss=7a3a8&oh=00_Af3StnTdpZLmx3rCB2E74f0ekvz4NkkzWwy7AX4jHeP0GA&oe=69E3C806" 
+                  src={logo} 
                   alt={`Logo ${contact?.companyName || 'Nguyễn Bính Sports'}`} 
                   className="w-full h-full object-cover"
                 />

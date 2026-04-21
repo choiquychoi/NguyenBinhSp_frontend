@@ -2,9 +2,11 @@ import React from 'react';
 import { motion, Variants } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
 import { ShieldCheck, Users, Star, ArrowUpRight } from "lucide-react";
+import storeImg from '@/assets/store.jpg';
 
 const AboutUs: React.FC = () => {
-  const imageUrl = "https://scontent.fsgn5-12.fna.fbcdn.net/v/t39.30808-6/489995817_1227852789341287_4604194789849872020_n.jpg?stp=cp6_dst-jpg_s960x960_tt6&_nc_cat=105&ccb=1-7&_nc_sid=2a1932&_nc_ohc=1bBrPDKGFIIQ7kNvwFawm6_&_nc_oc=AdpESETmIeCgp7kEams8kiqgPrYO2b9BwbSWtf7dZmgbAhpj_vu_Ilu25CYXJFbwcZ4&_nc_zt=23&_nc_ht=scontent.fsgn5-12.fna&_nc_gid=SmN8yB_q2GCTRcE4yJPWqQ&_nc_ss=7a3a8&oh=00_Af0x-My-DKzytBdVou09JqnvF7TrXeXVe76wx1XSP0X-6w&oe=69E3E618";
+  const imageUrl = storeImg;
+
 
   const containerVariants: Variants = {
     hidden: { opacity: 0 },

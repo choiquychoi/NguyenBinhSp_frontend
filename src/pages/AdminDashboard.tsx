@@ -233,8 +233,9 @@ const AdminDashboard: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-50">
-                  {stats.recentOrders.map((order) => (
-                    <tr key={order._id} className="hover:bg-gray-50/50 transition-colors group">
+                  {stats?.recentOrders?.map((order: any) => (
+                    <tr key={order._id} className="group hover:bg-gray-50/50 transition-colors">
+
                       <td className="px-8 py-5">
                         <span className="font-black text-xs text-red-600">{order.orderNumber}</span>
                       </td>

@@ -8,16 +8,13 @@ export interface CartItem {
   quantity: number;
   category: string;
   slug: string;
-  selectedSize?: string;
-  selectedColor?: string;
-  cartItemId: string; // ID duy nhất trong giỏ hàng: _id + size + color
 }
 
 interface CartContextType {
   cart: CartItem[];
-  addToCart: (product: any, quantity?: number, size?: string, color?: string) => void;
-  removeFromCart: (cartItemId: string) => void;
-  updateQuantity: (cartItemId: string, quantity: number) => void;
+  addToCart: (product: any, quantity?: number) => void;
+  removeFromCart: (productId: string) => void;
+  updateQuantity: (productId: string, quantity: number) => void;
   clearCart: () => void;
   getCartTotal: () => number;
   getItemCount: () => number;
@@ -35,42 +32,37 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     localStorage.setItem('nb_sports_cart', JSON.stringify(cart));
   }, [cart]);
 
-  const addToCart = (product: any, quantity: number = 1, size?: string, color?: string) => {
-    const cartItemId = `${product._id}-${size || ''}-${color || ''}`;
-    
+  const addToCart = (product: any, quantity: number = 1) => {
     setCart(prevCart => {
-      const existingItem = prevCart.find(item => item.cartItemId === cartItemId);
+      const existingItem = prevCart.find(item => item._id === product._id);
       if (existingItem) {
         return prevCart.map(item =>
-          item.cartItemId === cartItemId
+          item._id === product._id
             ? { ...item, quantity: item.quantity + quantity }
             : item
         );
       }
       return [...prevCart, {
         _id: product._id,
-        cartItemId,
         name: product.name,
         price: product.price,
         image: product.mainImage || product.image,
         category: product.category,
         slug: product.slug,
-        selectedSize: size,
-        selectedColor: color,
         quantity: quantity
       }];
     });
   };
 
-  const removeFromCart = (cartItemId: string) => {
-    setCart(prevCart => prevCart.filter(item => item.cartItemId !== cartItemId));
+  const removeFromCart = (productId: string) => {
+    setCart(prevCart => prevCart.filter(item => item._id !== productId));
   };
 
-  const updateQuantity = (cartItemId: string, quantity: number) => {
+  const updateQuantity = (productId: string, quantity: number) => {
     if (quantity < 1) return;
     setCart(prevCart =>
       prevCart.map(item =>
-        item.cartItemId === cartItemId ? { ...item, quantity } : item
+        item._id === productId ? { ...item, quantity } : item
       )
     );
   };
