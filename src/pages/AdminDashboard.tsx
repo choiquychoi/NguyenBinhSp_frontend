@@ -64,6 +64,14 @@ const AdminDashboard: React.FC = () => {
 
   if (!stats) return <div className="p-10 text-center font-bold">Không thể tải dữ liệu thống kê.</div>;
 
+  const STATUS_COLORS: { [key: string]: string } = {
+    "Chờ duyệt": "#f59e0b", // Amber
+    "Đã xác nhận": "#3b82f6", // Blue
+    "Đang giao": "#8b5cf6", // Purple
+    "Đã giao": "#10b981", // Emerald
+    "Đã hủy": "#6b7280", // Gray
+  };
+
   const summaryCards = [
     { title: 'Doanh thu tổng', value: `${stats.totalRevenue.toLocaleString()}₫`, icon: DollarSign, color: 'text-emerald-500', bg: 'bg-emerald-50' },
     { title: 'Tổng đơn hàng', value: stats.totalOrders, icon: ShoppingCart, color: 'text-blue-500', bg: 'bg-blue-50' },
@@ -158,7 +166,7 @@ const AdminDashboard: React.FC = () => {
                     dataKey="value"
                   >
                     {stats.statusStats.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
+                      <Cell key={`cell-${index}`} fill={STATUS_COLORS[entry.name] || '#eee'} />
                     ))}
                   </Pie>
                   <Tooltip />
