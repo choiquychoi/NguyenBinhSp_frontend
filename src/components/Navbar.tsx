@@ -84,7 +84,6 @@ const Navbar = () => {
     { name: "Phụ Kiện", path: "/category/Phụ Kiện" },
     { name: "Tin tức", path: "/news" },
     { name: "Liên Hệ", path: "/contact" },
-    { name: "Tra cứu đơn", path: "/track-order" },
   ];
 
   return (
