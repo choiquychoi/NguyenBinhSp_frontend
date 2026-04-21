@@ -21,17 +21,18 @@ interface IContact {
   };
 }
 
+import api from '@/lib/axios';
+
 const Footer = () => {
   const [contact, setContact] = useState<IContact | null>(null);
 
   useEffect(() => {
     const fetchContact = async () => {
       try {
-        const response = await fetch(`${CONFIG.API_URL}/contact`);
-        const data = await response.json();
+        const { data } = await api.get('/contact');
         setContact(data);
       } catch (error) {
-        console.error('Lỗi tải thông tin liên hệ footer:', error);
+        console.error('Lỗi khi lấy thông tin Footer:', error);
       }
     };
     fetchContact();

@@ -4,6 +4,8 @@ import { Lock, User, AlertCircle } from 'lucide-react';
 
 import CONFIG from '@/lib/config';
 
+import api from '@/lib/axios';
+
 const AdminLogin: React.FC = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -17,23 +19,7 @@ const AdminLogin: React.FC = () => {
     setError('');
 
     try {
-      const response = await fetch(`${CONFIG.API_URL}/admin/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password }),
-      });
-
-      // Kiểm tra nếu phản hồi không phải JSON
-      const contentType = response.headers.get('content-type');
-      if (!contentType || !contentType.includes('application/json')) {
-        throw new Error('Server không trả về JSON. Có thể bạn đang gọi nhầm cổng (Port) của Frontend hoặc Server Backend chưa chạy.');
-      }
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Đăng nhập thất bại');
-      }
+      const { data } = await api.post('/admin/login', { username, password });
 
       // Lưu token vào localStorage để sử dụng cho các yêu cầu sau
       localStorage.setItem('adminToken', data.token);
@@ -42,7 +28,7 @@ const AdminLogin: React.FC = () => {
       // Chuyển hướng sang trang Dashboard
       navigate('/admin');
     } catch (err: any) {
-      setError(err.message);
+      setError(err.response?.data?.message || err.message || 'Lỗi đăng nhập');
     } finally {
       setLoading(false);
     }

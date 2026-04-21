@@ -14,6 +14,8 @@ interface NewsPost {
   slug: string;
 }
 
+import api from '@/lib/axios';
+
 const NewsSection = () => {
   const [news, setNews] = useState<NewsPost[]>([]);
   const [loading, setLoading] = useState(true);
@@ -21,8 +23,7 @@ const NewsSection = () => {
   useEffect(() => {
     const fetchNews = async () => {
       try {
-        const res = await fetch(`${CONFIG.API_URL}/posts?limit=3`);
-        const data = await res.json();
+        const { data } = await api.get('/posts?limit=3');
         // Cập nhật lấy posts từ object phân trang mới
         setNews(data.posts || []);
       } catch (error) {

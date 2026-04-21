@@ -6,13 +6,15 @@ import { CheckCircle2 } from "lucide-react";
 import { motion } from "framer-motion";
 import CONFIG from '@/lib/config';
 
+import api from '@/lib/axios';
+
 const FocusProduct = () => {
   const [product, setProduct] = useState<any>(null);
 
   useEffect(() => {
     const fetchFocusProduct = async () => {
       try {
-        const { data } = await axios.get(`${CONFIG.API_URL}/products`);
+        const { data } = await api.get('/products');
         // API mới trả về { products: [...] }, chúng ta cần lấy mảng products ra trước
         const productList = data.products || data;
         const focus = Array.isArray(productList) ? productList.find((p: any) => p.isFocus || p.name.includes('Youlong')) : null;

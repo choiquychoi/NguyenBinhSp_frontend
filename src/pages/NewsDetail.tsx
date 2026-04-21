@@ -44,6 +44,8 @@ interface TOCItem {
   level: number;
 }
 
+import api from '@/lib/axios';
+
 const NewsDetail = () => {
   const { slug } = useParams<{ slug: string }>();
   const [post, setPost] = useState<NewsPost | null>(null);
@@ -63,17 +65,14 @@ const NewsDetail = () => {
     const fetchPost = async () => {
       try {
         setLoading(true);
-        const res = await fetch(`${CONFIG.API_URL}/posts/${slug}`);
-        if (!res.ok) throw new Error("Không tìm thấy bài viết");
-        const data = await res.json();
+        const { data } = await api.get(`/posts/${slug}`);
         
         if (!data.views) data.views = Math.floor(Math.random() * 5000) + 1000;
         
         setPost(data);
 
         // Lấy danh sách bài viết gần đây
-        const recentRes = await fetch(`${CONFIG.API_URL}/posts`);
-        const recentData = await recentRes.json();
+        const { data: recentData } = await api.get('/posts');
         const postsArray = Array.isArray(recentData) ? recentData : (recentData.posts || []);
         setRecentNews(postsArray.filter((item: NewsPost) => item.slug !== slug).slice(0, 5));
         

@@ -20,6 +20,8 @@ interface IContact {
   seoDescription: string;
 }
 
+import api from '@/lib/axios';
+
 const Contact: React.FC = () => {
   const [contact, setContact] = useState<IContact | null>(null);
   const [loading, setLoading] = useState(true);
@@ -27,8 +29,7 @@ const Contact: React.FC = () => {
   useEffect(() => {
     const fetchContact = async () => {
       try {
-        const response = await fetch(`${CONFIG.API_URL}/contact`);
-        const data = await response.json();
+        const { data } = await api.get('/contact');
         setContact(data);
         if (data) {
           document.title = data.seoTitle || 'Liên hệ | Nguyễn Bính Sports';

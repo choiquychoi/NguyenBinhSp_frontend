@@ -24,6 +24,8 @@ interface IProduct {
   slug: string;
 }
 
+import api from '@/lib/axios';
+
 const ProductDetail: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
@@ -40,8 +42,7 @@ const ProductDetail: React.FC = () => {
     const fetchProductData = async () => {
       setLoading(true);
       try {
-        const res = await fetch(`${CONFIG.API_URL}/products/${slug}`);
-        const data = await res.json();
+        const { data } = await api.get(`/products/${slug}`);
         setProduct(data);
         setActiveImg(data.mainImage);
       } catch (error) {

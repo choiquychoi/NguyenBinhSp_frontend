@@ -21,6 +21,8 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import CONFIG from '@/lib/config';
 
+import api from '@/lib/axios';
+
 const Checkout = () => {
   const { cart, getCartTotal, clearCart } = useCart();
   const navigate = useNavigate();
@@ -75,25 +77,17 @@ const Checkout = () => {
         paymentMethod: formData.paymentMethod
       };
 
-      const response = await fetch(`${CONFIG.API_URL}/orders`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(orderData)
-      });
+      const { data } = await api.post('/orders', orderData);
 
-      const data = await response.json();
-
-      if (response.ok) {
+      if (data) {
         setOrderNumber(data.orderNumber);
         setOrderSuccess(true);
         clearCart();
         window.scrollTo(0, 0);
-      } else {
-        alert(data.message || 'Có lỗi xảy ra khi đặt hàng');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Lỗi đặt hàng:', error);
-      alert('Không thể kết nối tới máy chủ');
+      alert(error.response?.data?.message || 'Có lỗi xảy ra khi đặt hàng');
     } finally {
       setLoading(false);
     }

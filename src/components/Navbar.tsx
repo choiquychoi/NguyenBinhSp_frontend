@@ -15,6 +15,8 @@ import { useCart } from '@/context/CartContext';
 import axios from 'axios';
 import logo from '@/assets/logo.jpg';
 
+import api from '@/lib/axios';
+
 const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -52,7 +54,7 @@ const Navbar = () => {
       if (searchQuery.trim().length > 1) {
         setIsLoading(true);
         try {
-          const { data } = await axios.get(`http://localhost:5005/api/products?keyword=${searchQuery}&limit=5`);
+          const { data } = await api.get(`/products?keyword=${searchQuery}&limit=5`);
           setSearchResults(data.products);
         } catch (error) {
           console.error('Search error:', error);

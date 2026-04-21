@@ -22,6 +22,8 @@ interface IProduct {
   brand: string;
 }
 
+import api from '@/lib/axios';
+
 const CategoryPage: React.FC = () => {
   const { categoryName } = useParams<{ categoryName: string }>();
   const [products, setProducts] = useState<IProduct[]>([]);
@@ -39,12 +41,12 @@ const CategoryPage: React.FC = () => {
   const fetchProducts = async () => {
     setLoading(true);
     try {
-      let url = `${CONFIG.API_URL}/products?category=${categoryName}&page=${page}&limit=12&sort=${sort}`;
+      let url = `/products?category=${categoryName}&page=${page}&limit=12&sort=${sort}`;
       if (brand) url += `&brand=${brand}`;
       if (minPrice) url += `&minPrice=${minPrice}`;
       if (maxPrice) url += `&maxPrice=${maxPrice}`;
 
-      const { data } = await axios.get(url);
+      const { data } = await api.get(url);
       setProducts(data.products);
       setPages(data.pages);
       if (data.brands) setBrands(data.brands);

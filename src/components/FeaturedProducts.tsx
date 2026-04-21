@@ -24,6 +24,8 @@ interface IProduct {
   isFeatured: boolean;
 }
 
+import api from '@/lib/axios';
+
 const FeaturedProducts = () => {
   const [products, setProducts] = useState<IProduct[]>([]);
   const [loading, setLoading] = useState(true);
@@ -33,7 +35,7 @@ const FeaturedProducts = () => {
       try {
         setLoading(true);
         // Gọi đích danh các sản phẩm nổi bật (đã được Backend sắp xếp theo featuredAt)
-        const { data } = await axios.get('http://localhost:5005/api/products?isFeatured=true&limit=20');
+        const { data } = await api.get('/products?isFeatured=true&limit=20');
         setProducts(data.products);
       } catch (error) {
         console.error('Error fetching featured products:', error);
