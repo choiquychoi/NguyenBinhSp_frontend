@@ -18,7 +18,8 @@ import {
   ShoppingBag,
   Trash2,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  CreditCard
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -182,9 +183,14 @@ const AdminOrders = () => {
                     <div className="text-right flex items-center gap-4">
                       <div>
                         <p className="text-lg font-black text-red-600 tracking-tighter">{order.totalAmount.toLocaleString()}₫</p>
-                        <Badge className={`mt-1 border font-black uppercase text-[8px] tracking-widest px-2 py-0.5 rounded-lg ${statusConfig[order.status].color}`}>
-                          {statusConfig[order.status].label}
-                        </Badge>
+                        <div className="flex gap-2 justify-end mt-1">
+                          <Badge className={`border font-black uppercase text-[8px] tracking-widest px-2 py-0.5 rounded-lg ${order.paymentMethod === 'Bank Transfer' ? 'bg-indigo-50 text-indigo-600 border-indigo-100' : 'bg-zinc-50 text-zinc-600 border-zinc-100'}`}>
+                            {order.paymentMethod === 'Bank Transfer' ? 'BANK' : 'COD'}
+                          </Badge>
+                          <Badge className={`border font-black uppercase text-[8px] tracking-widest px-2 py-0.5 rounded-lg ${statusConfig[order.status].color}`}>
+                            {statusConfig[order.status].label}
+                          </Badge>
+                        </div>
                       </div>
                       
                       <button 
@@ -284,6 +290,24 @@ const AdminOrders = () => {
                             {selectedOrder.customer.address}, {selectedOrder.customer.district}, {selectedOrder.customer.province}
                           </span>
                         </div>
+                      </div>
+                    </div>
+
+                    {/* Payment Method Info */}
+                    <div className="space-y-4">
+                      <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 border-b border-gray-50 pb-2">Phương thức thanh toán</h4>
+                      <div className="flex items-center gap-3">
+                        {selectedOrder.paymentMethod === 'Bank Transfer' ? (
+                          <div className="flex items-center gap-3 w-full p-4 bg-indigo-50 border border-indigo-100 rounded-2xl">
+                            <CreditCard size={20} className="text-indigo-600" />
+                            <span className="text-sm font-black uppercase text-indigo-600">Chuyển khoản ngân hàng</span>
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-3 w-full p-4 bg-zinc-50 border border-zinc-100 rounded-2xl">
+                            <Truck size={20} className="text-zinc-600" />
+                            <span className="text-sm font-black uppercase text-zinc-600">Thanh toán khi nhận hàng (COD)</span>
+                          </div>
+                        )}
                       </div>
                     </div>
 

@@ -17,6 +17,9 @@ import Cart from './pages/Cart';
 import Checkout from './pages/Checkout';
 import OrderTracking from './pages/OrderTracking';
 import { CartProvider } from './context/CartContext';
+import QuickContact from './components/QuickContact';
+
+// Component bảo vệ Route Admin
 
 // Component bảo vệ Route Admin
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
@@ -61,6 +64,9 @@ const App: React.FC = () => {
             <Route path="news" element={<AdminNews />} />
           </Route>
         </Routes>
+        
+        {/* Chỉ hiển thị QuickContact ở trang người dùng, không hiện ở Admin */}
+        {!window.location.pathname.startsWith('/admin') && <QuickContact />}
       </Router>
     </CartProvider>
   );

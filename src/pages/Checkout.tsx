@@ -10,7 +10,8 @@ import {
   Truck,
   ArrowLeft,
   CheckCircle2,
-  Loader2
+  Loader2,
+  Facebook
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useCart } from '@/context/CartContext';
@@ -29,6 +30,7 @@ const Checkout = () => {
   const [loading, setLoading] = useState(false);
   const [orderSuccess, setOrderSuccess] = useState(false);
   const [orderNumber, setOrderNumber] = useState('');
+  const [placedOrder, setPlacedOrder] = useState<any>(null);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -81,6 +83,11 @@ const Checkout = () => {
 
       if (data) {
         setOrderNumber(data.orderNumber);
+        setPlacedOrder({
+          ...orderData,
+          orderNumber: data.orderNumber,
+          createdAt: new Date().toISOString()
+        });
         setOrderSuccess(true);
         clearCart();
         window.scrollTo(0, 0);
@@ -93,45 +100,161 @@ const Checkout = () => {
     }
   };
 
-  if (orderSuccess) {
+  if (orderSuccess && placedOrder) {
     return (
-      <div className="min-h-screen bg-white">
+      <div className="min-h-screen bg-zinc-50/30">
         <Navbar />
-        <main className="container mx-auto px-4 pt-40 pb-20 text-center">
-          <motion.div 
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="max-w-xl mx-auto"
-          >
-            <div className="w-24 h-24 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-8 text-green-500">
-              <CheckCircle2 size={64} />
-            </div>
-            <h2 className="text-4xl font-black uppercase tracking-tighter mb-4">Đặt hàng thành công!</h2>
-            <p className="text-zinc-500 mb-2 font-medium text-lg text-center">Cảm ơn bạn đã tin tưởng Nguyễn Bính Sports.</p>
-            <p className="text-zinc-400 mb-8 font-bold uppercase tracking-widest text-xs">Mã đơn hàng: <span className="text-destructive">{orderNumber}</span></p>
-            
-            <div className="bg-zinc-50 p-8 rounded-3xl mb-10 text-left border border-zinc-100">
-               <h4 className="font-black uppercase text-xs tracking-widest mb-4">Thông tin tiếp theo:</h4>
-               <ul className="space-y-3 text-sm text-zinc-600 font-medium">
-                  <li className="flex gap-3 items-start">
-                    <div className="w-1.5 h-1.5 rounded-full bg-destructive mt-1.5 shrink-0" />
-                    Nhân viên của chúng tôi sẽ gọi điện xác nhận đơn hàng trong vòng 15-30 phút.
-                  </li>
-                  <li className="flex gap-3 items-start">
-                    <div className="w-1.5 h-1.5 rounded-full bg-destructive mt-1.5 shrink-0" />
-                    Đơn hàng sẽ được đóng gói và bàn giao cho đơn vị vận chuyển ngay trong ngày.
-                  </li>
-                  <li className="flex gap-3 items-start">
-                    <div className="w-1.5 h-1.5 rounded-full bg-destructive mt-1.5 shrink-0" />
-                    Bạn có thể kiểm tra email để xem lại chi tiết đơn hàng.
-                  </li>
-               </ul>
+        <main className="container mx-auto px-4 pt-40 pb-20">
+          <div className="max-w-4xl mx-auto">
+            {/* SUCCESS HEADER */}
+            <div className="text-center mb-12">
+              <div className="w-20 h-20 bg-green-50 text-green-500 rounded-full flex items-center justify-center mx-auto mb-6">
+                <CheckCircle2 size={48} />
+              </div>
+              <h2 className="text-3xl md:text-5xl font-black uppercase tracking-tighter italic mb-4">Cảm ơn bạn. <br/>Đơn hàng của bạn <span className="text-destructive">đã được nhận.</span></h2>
+              <p className="text-zinc-500 font-medium">Nhân viên của chúng tôi sẽ sớm liên hệ xác nhận với bạn.</p>
             </div>
 
-            <Button asChild className="bg-zinc-950 hover:bg-destructive px-10 py-6 rounded-none font-black uppercase tracking-widest text-xs transition-all shadow-xl">
-              <Link to="/">Quay lại trang chủ</Link>
-            </Button>
-          </motion.div>
+            {/* QUICK STATS */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12 bg-white p-8 rounded-[2rem] shadow-sm border border-zinc-100">
+              <div className="text-center md:border-r border-zinc-50">
+                <p className="text-[9px] font-black uppercase tracking-widest text-zinc-400 mb-1">Mã đơn hàng</p>
+                <p className="font-black text-sm uppercase">{placedOrder.orderNumber}</p>
+              </div>
+              <div className="text-center md:border-r border-zinc-50">
+                <p className="text-[9px] font-black uppercase tracking-widest text-zinc-400 mb-1">Ngày đặt</p>
+                <p className="font-black text-sm uppercase">{new Date(placedOrder.createdAt).toLocaleDateString('vi-VN', { month: 'long', day: 'numeric', year: 'numeric' })}</p>
+              </div>
+              <div className="text-center md:border-r border-zinc-50">
+                <p className="text-[9px] font-black uppercase tracking-widest text-zinc-400 mb-1">Tổng cộng</p>
+                <p className="font-black text-sm text-destructive uppercase">{placedOrder.totalAmount.toLocaleString()}₫</p>
+              </div>
+              <div className="text-center">
+                <p className="text-[9px] font-black uppercase tracking-widest text-zinc-400 mb-1">Thanh toán</p>
+                <p className="font-black text-[10px] uppercase">{placedOrder.paymentMethod === 'Bank Transfer' ? 'Chuyển khoản' : 'COD'}</p>
+              </div>
+            </div>
+
+            {/* BANK DETAILS (IF BANK TRANSFER) */}
+            {placedOrder.paymentMethod === 'Bank Transfer' && (
+              <div className="mb-12">
+                <h3 className="text-xl font-black uppercase tracking-tighter italic mb-6 border-b-4 border-destructive inline-block">Thông tin chuyển khoản</h3>
+                <div className="bg-zinc-950 text-white p-10 rounded-[2.5rem] relative overflow-hidden shadow-2xl">
+                  <div className="absolute top-0 right-0 w-64 h-64 bg-destructive/10 rounded-full blur-[100px] -mr-32 -mt-32" />
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-10 relative z-10">
+                    <div className="space-y-6">
+                      <div>
+                        <p className="text-[10px] font-black uppercase tracking-widest text-zinc-500 mb-2">Chủ tài khoản</p>
+                        <p className="text-2xl font-black uppercase italic tracking-tighter">VŨ DUY LONG</p>
+                      </div>
+                      <div>
+                        <p className="text-[10px] font-black uppercase tracking-widest text-zinc-500 mb-2">Ngân hàng</p>
+                        <p className="text-lg font-bold">TPBank (Tiên Phong Bank)</p>
+                      </div>
+                      <div>
+                        <p className="text-[10px] font-black uppercase tracking-widest text-zinc-500 mb-2">Số tài khoản</p>
+                        <p className="text-3xl font-black text-destructive tracking-[0.1em]">81988886666</p>
+                      </div>
+                    </div>
+                    <div className="bg-white/5 p-6 rounded-3xl border border-white/10 flex flex-col justify-center text-center space-y-4">
+                      <p className="text-sm font-medium leading-relaxed italic text-zinc-400">
+                        Vui lòng chuyển khoản đúng số tiền <span className="text-white font-black">{placedOrder.totalAmount.toLocaleString()}₫</span> với nội dung là số điện thoại của bạn.
+                      </p>
+                      <div className="p-4 bg-white/10 rounded-2xl">
+                        <p className="text-[10px] font-black uppercase tracking-widest text-destructive mb-1">Nội dung chuyển khoản</p>
+                        <p className="text-xl font-black tracking-widest">{placedOrder.customer.phone}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
+              {/* ORDER DETAILS */}
+              <div className="bg-white p-10 rounded-[2.5rem] shadow-sm border border-zinc-100">
+                <h3 className="text-xl font-black uppercase tracking-tighter italic mb-8 border-b border-zinc-50 pb-4">Chi tiết <span className="text-destructive">đơn hàng</span></h3>
+                <div className="space-y-6">
+                  {placedOrder.items.map((item: any, idx: number) => (
+                    <div key={idx} className="flex justify-between items-center gap-4">
+                      <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 bg-zinc-100 rounded-xl overflow-hidden border border-zinc-50">
+                          <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
+                        </div>
+                        <div>
+                          <p className="text-xs font-black uppercase tracking-tighter line-clamp-1">{item.name}</p>
+                          <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">{item.quantity} x {item.price.toLocaleString()}₫</p>
+                        </div>
+                      </div>
+                      <span className="font-black text-sm tracking-tighter">{(item.price * item.quantity).toLocaleString()}₫</span>
+                    </div>
+                  ))}
+                  
+                  <div className="pt-6 border-t border-zinc-50 space-y-4">
+                    <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-zinc-400">
+                      <span>Tạm tính</span>
+                      <span className="text-zinc-900">{placedOrder.totalAmount.toLocaleString()}₫</span>
+                    </div>
+                    <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-zinc-400">
+                      <span>Vận chuyển</span>
+                      <span className="text-green-500">Miễn phí</span>
+                    </div>
+                    <div className="flex justify-between items-end pt-4 border-t border-zinc-50">
+                      <span className="text-sm font-black uppercase tracking-tighter italic">Tổng cộng</span>
+                      <span className="text-3xl font-black text-destructive tracking-tighter leading-none">{placedOrder.totalAmount.toLocaleString()}₫</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* ADDRESS INFO */}
+              <div className="bg-white p-10 rounded-[2.5rem] shadow-sm border border-zinc-100 space-y-10">
+                <div className="space-y-6">
+                  <h3 className="text-xl font-black uppercase tracking-tighter italic mb-4 border-b border-zinc-50 pb-4">Địa chỉ <span className="text-destructive">giao hàng</span></h3>
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full bg-zinc-50 flex items-center justify-center text-destructive"><User size={16} /></div>
+                      <span className="text-sm font-black uppercase tracking-tight">{placedOrder.customer.name}</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full bg-zinc-50 flex items-center justify-center text-destructive"><Phone size={16} /></div>
+                      <span className="text-sm font-bold tracking-widest">{placedOrder.customer.phone}</span>
+                    </div>
+                    <div className="flex items-start gap-3">
+                      <div className="w-8 h-8 rounded-full bg-zinc-50 flex items-center justify-center text-destructive mt-1"><MapPin size={16} /></div>
+                      <span className="text-sm font-medium text-zinc-500 leading-relaxed">
+                        {placedOrder.customer.address}, {placedOrder.customer.district}, {placedOrder.customer.province}
+                      </span>
+                    </div>
+                    {placedOrder.customer.note && (
+                      <div className="p-4 bg-zinc-50 rounded-2xl border border-dashed border-zinc-200">
+                        <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400 mb-1">Ghi chú</p>
+                        <p className="text-xs font-medium italic text-zinc-500">"{placedOrder.customer.note}"</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="pt-6 border-t border-zinc-50">
+                   <h4 className="text-[10px] font-black uppercase tracking-widest text-zinc-400 mb-4">Mạng xã hội hỗ trợ</h4>
+                   <div className="flex gap-3">
+                      <a href="https://www.facebook.com/messages/t/1431186217018284" target="_blank" rel="noreferrer" className="w-10 h-10 rounded-full bg-zinc-50 flex items-center justify-center hover:bg-blue-600 hover:text-white transition-all"><Facebook size={18} /></a>
+                      <a href="https://zalo.me/0902513939" target="_blank" rel="noreferrer" className="px-4 h-10 rounded-full bg-zinc-50 flex items-center justify-center hover:bg-green-600 hover:text-white transition-all text-[10px] font-black uppercase">Zalo</a>
+                      <a href="tel:0902513939" className="w-10 h-10 rounded-full bg-zinc-50 flex items-center justify-center hover:bg-destructive hover:text-white transition-all"><Phone size={18} /></a>
+                   </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex flex-col md:flex-row gap-4 justify-center">
+              <Button asChild className="bg-zinc-950 hover:bg-destructive px-12 h-16 rounded-none font-black uppercase tracking-[0.2em] text-xs transition-all shadow-xl">
+                <Link to="/">Tiếp tục mua sắm</Link>
+              </Button>
+              <Button asChild variant="outline" className="border-2 border-zinc-200 hover:border-destructive px-12 h-16 rounded-none font-black uppercase tracking-[0.2em] text-xs transition-all">
+                <Link to="/news">Xem tin tức</Link>
+              </Button>
+            </div>
+          </div>
         </main>
         <Footer />
       </div>
@@ -271,6 +394,48 @@ const Checkout = () => {
                   <p className="text-[10px] text-zinc-400 font-bold uppercase mt-1">Ưu tiên xử lý đơn hàng nhanh nhất</p>
                 </label>
               </div>
+
+              {/* THÔNG TIN CHUYỂN KHOẢN HIỆN RA KHI CHỌN BANK TRANSFER */}
+              {formData.paymentMethod === 'Bank Transfer' && (
+                <motion.div 
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="mt-6 p-8 bg-zinc-950 text-white rounded-[2rem] border-2 border-zinc-800 shadow-2xl relative overflow-hidden"
+                >
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-destructive/10 rounded-full blur-3xl -mr-16 -mt-16" />
+                  
+                  <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-destructive mb-6 flex items-center gap-2">
+                    <div className="w-1.5 h-1.5 rounded-full bg-destructive animate-pulse" />
+                    Thông tin tài khoản thanh toán
+                  </h4>
+                  
+                  <div className="space-y-6 relative z-10">
+                    <div>
+                      <p className="text-[9px] font-black uppercase tracking-widest text-zinc-500 mb-1">Chủ tài khoản</p>
+                      <p className="text-xl font-black uppercase tracking-tighter">VŨ DUY LONG</p>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <p className="text-[9px] font-black uppercase tracking-widest text-zinc-500 mb-1">Ngân hàng</p>
+                        <p className="text-sm font-bold">TPBank (Tiên Phong)</p>
+                      </div>
+                      <div>
+                        <p className="text-[9px] font-black uppercase tracking-widest text-zinc-500 mb-1">Số tài khoản</p>
+                        <p className="text-xl font-black tracking-widest text-destructive">81988886767</p>
+                      </div>
+
+                    </div>
+
+                    <div className="pt-4 border-t border-zinc-800">
+                      <p className="text-[10px] font-medium text-zinc-400 italic">
+                        * Nội dung chuyển khoản: <span className="text-white font-bold">SDT + Ho Ten</span>. 
+                        Đơn hàng sẽ được xác nhận ngay sau khi nhận được tiền.
+                      </p>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
             </div>
           </div>
 
@@ -333,7 +498,56 @@ const Checkout = () => {
                   )}
                 </Button>
 
-                <p className="text-[9px] text-center text-zinc-400 font-bold uppercase mt-6 tracking-widest">
+                {/* SUPPORT BOX INSPIRED BY WATCHSTORE */}
+                <div className="mt-8 p-6 bg-zinc-50 rounded-2xl border border-dashed border-zinc-200 space-y-4">
+                  <p className="text-[11px] font-bold text-zinc-600 leading-relaxed text-center italic">
+                    "Nếu bạn không đặt được hàng, vui lòng nhắn tin Messenger, Chat Zalo hoặc liên hệ Hotline: <span className="text-destructive font-black">090 251 39 39</span>"
+                  </p>
+                  
+                  <div className="grid grid-cols-3 gap-3">
+                    <a 
+                      href="https://www.facebook.com/messages/t/1431186217018284" target="_blank" rel="noreferrer"
+                      className="flex flex-col items-center gap-2 p-3 bg-white rounded-xl border border-zinc-100 hover:border-blue-500 hover:shadow-md transition-all group"
+                    >
+                      <img src="https://upload.wikimedia.org/wikipedia/commons/b/be/Facebook_Messenger_logo_2020.svg" alt="Messenger" className="w-6 h-6" />
+                      <span className="text-[9px] font-black uppercase tracking-tighter text-zinc-400 group-hover:text-blue-500">Messenger</span>
+                    </a>
+                    <a 
+                      href="https://zalo.me/0902513939" target="_blank" rel="noreferrer"
+                      className="flex flex-col items-center gap-2 p-3 bg-white rounded-xl border border-zinc-100 hover:border-blue-400 hover:shadow-md transition-all group"
+                    >
+                      <img src="https://upload.wikimedia.org/wikipedia/commons/9/91/Icon_of_Zalo.svg" alt="Zalo" className="w-6 h-6" />
+                      <span className="text-[9px] font-black uppercase tracking-tighter text-zinc-400 group-hover:text-blue-400">Chat Zalo</span>
+                    </a>
+                    <a 
+                      href="tel:0902513939"
+                      className="flex flex-col items-center gap-2 p-3 bg-white rounded-xl border border-zinc-100 hover:border-destructive hover:shadow-md transition-all group"
+                    >
+                      <div className="w-6 h-6 flex items-center justify-center bg-destructive rounded-full text-white">
+                        <Phone size={12} fill="currentColor" />
+                      </div>
+                      <span className="text-[9px] font-black uppercase tracking-tighter text-zinc-400 group-hover:text-destructive">Hotline</span>
+                    </a>
+                  </div>
+                </div>
+
+                {/* TRUST BADGES */}
+                <div className="mt-8 grid grid-cols-2 gap-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-full bg-emerald-50 text-emerald-500 flex items-center justify-center shrink-0">
+                      <CheckCircle2 size={16} />
+                    </div>
+                    <span className="text-[9px] font-black uppercase tracking-widest text-zinc-500">Hàng chính hãng 100%</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-full bg-blue-50 text-blue-500 flex items-center justify-center shrink-0">
+                      <Truck size={16} />
+                    </div>
+                    <span className="text-[9px] font-black uppercase tracking-widest text-zinc-500">Giao hàng toàn quốc</span>
+                  </div>
+                </div>
+
+                <p className="text-[9px] text-center text-zinc-400 font-bold uppercase mt-8 tracking-widest border-t border-zinc-50 pt-6">
                   Bằng cách nhấn nút đặt hàng, bạn đồng ý với các <br/>
                   <Link to="/" className="text-destructive underline">điều khoản mua hàng</Link> của chúng tôi
                 </p>
