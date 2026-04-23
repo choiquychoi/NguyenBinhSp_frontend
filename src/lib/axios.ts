@@ -1,8 +1,18 @@
 import axios from 'axios';
 
+// Tự động xác định baseURL: 
+// Ưu tiên 1: Lấy từ file .env (VITE_API_URL)
+// Ưu tiên 2: Nếu đang chạy trên trình duyệt, lấy hostname của máy đó trỏ tới port 5005
+const getBaseURL = () => {
+  if (import.meta.env.VITE_API_URL) return import.meta.env.VITE_API_URL;
+  
+  const hostname = window.location.hostname;
+  return `http://${hostname}:5005/api`;
+};
+
 const api = axios.create({
-  baseURL: 'http://localhost:5005/api',
-  timeout: 60000, // Tăng lên 60 giây để đợi AI viết bài
+  baseURL: getBaseURL(),
+  timeout: 60000,
   headers: {
     'Content-Type': 'application/json',
   },
