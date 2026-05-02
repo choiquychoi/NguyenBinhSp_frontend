@@ -85,7 +85,7 @@ const AdminDashboard: React.FC = () => {
         <h2 className="text-4xl font-black text-gray-950 uppercase tracking-tighter italic flex items-center gap-3">
           <TrendingUp className="text-red-600" /> Bảng điều khiển
         </h2>
-        <p className="text-gray-400 text-[10px] font-black uppercase tracking-[0.2em] mt-1">Hệ thống quản trị Nguyễn Bính Sports</p>
+        <p className="text-gray-400 text-[10px] font-black uppercase tracking-[0.2em] mt-1">Hệ thống quản trị Tâm Hí Sports</p>
       </header>
 
       {/* STATS GRID */}

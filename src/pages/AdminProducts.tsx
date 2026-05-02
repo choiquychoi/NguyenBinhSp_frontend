@@ -10,14 +10,14 @@ interface IProduct {
   description: string;
   price: number;
   salePrice?: number;
-  category: 'Cầu lông' | 'Pickleball' | 'Tennis' | 'Dây Đan Vợt' | 'Giày Thể Thao' | 'Phụ Kiện';
+  category: 'Cầu lông' | 'Pickleball' | 'Quần áo' | 'Dây Đan Vợt' | 'Giày Thể Thao' | 'Phụ Kiện';
   brand: string;
   sku: string;
   status: 'Còn hàng' | 'Hết hàng' | 'Ngừng kinh doanh';
   specifications: {
     badminton?: any;
     pickleball?: any;
-    tennis?: any;
+    clothes?: any;
     shoes?: any;
   };
   mainImage: string;
@@ -47,7 +47,7 @@ const AdminProducts: React.FC = () => {
   const [formError, setFormError] = useState('');
   const [isUploading, setIsUploading] = useState(false);
 
-  const categories = ['Cầu lông', 'Pickleball', 'Tennis', 'Giày Thể Thao', 'Phụ Kiện'];
+  const categories = ['Cầu lông', 'Pickleball', 'Quần áo', 'Giày Thể Thao', 'Phụ Kiện'];
 
   const initialFormState = {
     name: '', description: '', price: 0, salePrice: 0, category: 'Cầu lông' as any,
@@ -55,7 +55,9 @@ const AdminProducts: React.FC = () => {
     specifications: {
       badminton: { weightGrip: '', balance: '', maxTension: '', frameThickness: '', shaftDiameter: '', frameMaterial: '', shaftMaterial: '', length: '', color: '', origin: '' },
       pickleball: { surface: '', core: '', upaACert: false, usapCert: false, warranty: '', shape: '', length: '', width: '', handleType: '', handleLength: '', handleCircumference: '' },
-      tennis: { weight: '', headSize: '', stringPattern: '', gripSize: '', balancePoint: '', frameLength: '', material: '', balanceType: '' }
+      clothes: { material: '', size: '', color: '', origin: '', technology: '' },
+      shoes: { color: '', origin: '', technology: '', soleMaterial: '', upperMaterial: '' },
+      others: ''
     },
     mainImage: '', gallery: [''],
     isFeatured: false, isFocus: false, isActive: true
@@ -375,9 +377,9 @@ const AdminProducts: React.FC = () => {
                       {[
                         { label: 'Bề mặt', key: 'surface' }, { label: 'Cốt lõi', key: 'core' },
                         { label: 'Bảo hành', key: 'warranty' }, { label: 'Hình dáng', key: 'shape' },
-                        { label: 'Dài', key: 'length' }, { label: 'Rộng', key: 'width' },
-                        { label: 'Loại tay cầm', key: 'handleType' }, { label: 'Dài tay cầm', key: 'handleLength' },
-                        { label: 'Chu vi tay cầm', key: 'handleCircumference' },
+                        { label: 'Dài (mm)', key: 'length' }, { label: 'Rộng (mm)', key: 'width' },
+                        { label: 'Loại tay cầm', key: 'handleType' }, { label: 'Dài tay cầm (mm)', key: 'handleLength' },
+                        { label: 'Chu vi tay cầm (mm)', key: 'handleCircumference' },
                       ].map(f => (
                         <div key={f.key} className="space-y-2">
                           <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">{f.label}</label>
@@ -387,18 +389,17 @@ const AdminProducts: React.FC = () => {
                         </div>
                       ))}
                     </div>
-                  ) : formData.category === 'Tennis' ? (
+                  ) : formData.category === 'Quần áo' ? (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                       {[
-                        { label: 'Trọng lượng (gram)', key: 'weight' }, { label: 'Kích thước đầu vợt', key: 'headSize' },
-                        { label: 'Mẫu dây', key: 'stringPattern' }, { label: 'Cán vợt', key: 'gripSize' },
-                        { label: 'Điểm cân bằng', key: 'balancePoint' }, { label: 'Chiều dài khung', key: 'frameLength' },
-                        { label: 'Chất liệu', key: 'material' }, { label: 'Loại cân bằng (HL/HH)', key: 'balanceType' },
+                        { label: 'Chất liệu', key: 'material' }, { label: 'Bảng size', key: 'size' },
+                        { label: 'Màu sắc', key: 'color' }, { label: 'Xuất xứ', key: 'origin' },
+                        { label: 'Công nghệ vải', key: 'technology' },
                       ].map(f => (
                         <div key={f.key} className="space-y-2">
                           <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">{f.label}</label>
-                          <input type="text" className="form-input-custom text-sm" value={(formData.specifications.tennis as any)?.[f.key] || ''} 
-                            onChange={e => setFormData({...formData, specifications: {...formData.specifications, tennis: { ...formData.specifications.tennis as any, [f.key]: e.target.value }}})} 
+                          <input type="text" className="form-input-custom text-sm" value={(formData.specifications.clothes as any)?.[f.key] || ''} 
+                            onChange={e => setFormData({...formData, specifications: {...formData.specifications, clothes: { ...formData.specifications.clothes as any, [f.key]: e.target.value }}})} 
                           />
                         </div>
                       ))}
@@ -419,7 +420,13 @@ const AdminProducts: React.FC = () => {
                       ))}
                     </div>
                   ) : (
-                    <div className="text-center py-24 bg-white rounded-[2rem] border-2 border-dashed border-gray-100 uppercase text-[10px] font-black text-gray-300 tracking-[0.3em]">Thông số chung</div>
+                    <div className="flex flex-col items-center justify-center py-32 bg-zinc-50 rounded-[3rem] border-2 border-dashed border-zinc-100 animate-in fade-in zoom-in duration-500">
+                      <div className="w-24 h-24 bg-white rounded-full flex items-center justify-center shadow-sm mb-6">
+                        <Package size={40} className="text-zinc-200" />
+                      </div>
+                      <h4 className="text-xs font-black uppercase tracking-[0.2em] text-zinc-400">Thông số kỹ thuật</h4>
+                      <p className="text-[10px] font-bold text-zinc-300 uppercase tracking-widest mt-2">Danh mục này không yêu cầu thông số kỹ thuật đặc thù</p>
+                    </div>
                   )}
                 </div>
               )}

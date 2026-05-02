@@ -18,10 +18,10 @@ const SEO: React.FC<SEOProps> = ({
   url, 
   type = 'website' 
 }) => {
-  const siteName = 'Nguyễn Bính Sports';
+  const siteName = 'Tâm Hí Sports';
   const fullTitle = title ? `${title} | ${siteName}` : siteName;
-  const defaultDescription = 'Nguyễn Bính Sports - Chuyên cung cấp dụng cụ thể thao Cầu lông, Pickleball, Tennis chính hãng, uy tín tại Việt Nam.';
-  const defaultKeywords = 'cầu lông, pickleball, tennis, vợt cầu lông, giày thể thao, nguyễn bính sports';
+  const defaultDescription = 'Tâm Hí Sports - Chuyên cung cấp dụng cụ thể thao Cầu lông, Pickleball, Tennis chính hãng, uy tín tại Việt Nam.';
+  const defaultKeywords = 'cầu lông, pickleball, tennis, vợt cầu lông, giày thể thao, tâm hí sports';
   const defaultImage = 'https://scontent.fsgn16-1.fna.fbcdn.net/v/t39.30808-1/250153056_2420750178061878_163732344248490005_n.jpg';
   const siteUrl = window.location.origin;
 

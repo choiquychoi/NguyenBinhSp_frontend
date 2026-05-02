@@ -32,7 +32,7 @@ const Contact: React.FC = () => {
         const { data } = await api.get('/contact');
         setContact(data);
         if (data) {
-          document.title = data.seoTitle || 'Liên hệ | Nguyễn Bính Sports';
+          document.title = data.seoTitle || 'Liên hệ | Tâm Hí Sports';
         }
       } catch (error) {
         console.error('Lỗi tải thông tin liên hệ:', error);
@@ -62,7 +62,7 @@ const Contact: React.FC = () => {
             Get In <span className="text-red-600 underline decoration-8 underline-offset-8">Touch</span>
           </h1>
           <p className="text-gray-400 max-w-2xl mx-auto font-bold text-xl uppercase tracking-widest opacity-80">
-            Nguyễn Bính Sports • {contact?.companyName}
+            Tâm Hí Sports • {contact?.companyName}
           </p>
         </div>
       </section>

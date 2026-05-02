@@ -36,7 +36,7 @@ const AboutUs: React.FC = () => {
             Câu chuyện thương hiệu
           </Badge>
           <h2 className="text-4xl md:text-6xl font-black uppercase tracking-tighter leading-none">
-            Nguyễn Bính <span className="text-destructive">Sports</span>
+            Tâm Hí <span className="text-destructive">Sports</span>
           </h2>
         </div>
 
@@ -89,7 +89,7 @@ const AboutUs: React.FC = () => {
             variants={itemVariants}
             className="md:col-span-2 lg:col-span-1 bg-white dark:bg-zinc-900 p-8 rounded-[2rem] border border-zinc-200 dark:border-zinc-800 flex flex-col items-center justify-center text-center shadow-sm hover:shadow-md transition-shadow"
           >
-            <span className="text-5xl font-black text-destructive mb-2">10+</span>
+            <span className="text-5xl font-black text-destructive mb-2">5+</span>
             <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Năm kinh nghiệm</span>
           </motion.div>
 

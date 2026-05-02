@@ -48,7 +48,7 @@ const Footer = () => {
               Đăng ký nhận <span className="text-destructive">tin mới nhất</span>
             </h3>
             <p className="text-zinc-400 font-medium max-w-md">
-              Nhận thông tin về sản phẩm mới, sự kiện và khuyến mãi hấp dẫn từ {contact?.companyName || 'Nguyễn Bính Sports'}.
+              Nhận thông tin về sản phẩm mới, sự kiện và khuyến mãi hấp dẫn từ {contact?.companyName || 'Tâm Hí Sports'}.
             </p>
           </div>
           <div className="flex w-full max-w-md group">
@@ -74,14 +74,14 @@ const Footer = () => {
               <div className="w-14 h-14 rounded-full overflow-hidden border-2 border-destructive shadow-xl">
                 <img 
                   src={logo} 
-                  alt={`Logo ${contact?.companyName || 'Nguyễn Bính Sports'}`} 
+                  alt={`Logo ${contact?.companyName || 'Tâm Hí Sports'}`} 
                   className="w-full h-full object-cover"
                 />
               </div>
               <div className="flex flex-col">
                 <span className="text-xl font-black uppercase tracking-tighter text-destructive">
-                  {contact?.companyName ? contact.companyName.split(' ')[0] : 'Nguyễn'}
-                  {contact?.companyName && contact.companyName.split(' ').length > 1 ? contact.companyName.split(' ')[1] : 'Bính'}
+                  {contact?.companyName ? contact.companyName.split(' ')[0] : 'Tâm'}
+                  {contact?.companyName && contact.companyName.split(' ').length > 1 ? contact.companyName.split(' ')[1] : 'Hí'}
                 </span>
                 <span className="text-xs font-bold uppercase tracking-widest text-green-500">
                   {contact?.companyName && contact.companyName.split(' ').length > 2 ? contact.companyName.split(' ').slice(2).join(' ') : 'Sports'}
@@ -142,7 +142,7 @@ const Footer = () => {
               {[
                 { name: "Cầu lông", path: "/category/Cầu lông" },
                 { name: "Pickleball", path: "/category/Pickleball" },
-                { name: "Tennis", path: "/category/Tennis" },
+                { name: "Quần áo", path: "/category/Quần áo" },
                 { name: "Dây Đan Vợt", path: "/category/Dây Đan Vợt" },
                 { name: "Giày Thể Thao", path: "/category/Giày Thể Thao" },
                 { name: "Phụ Kiện", path: "/category/Phụ Kiện" },
@@ -194,7 +194,7 @@ const Footer = () => {
               </li>
               <li className="flex gap-4">
                 <Mail className="h-5 w-5 text-destructive shrink-0" />
-                <a href={`mailto:${contact?.email}`} className="text-zinc-400 text-sm font-medium hover:text-destructive transition-colors">{contact?.email || 'contact@nguyenbinhsports.com'}</a>
+                <a href={`mailto:${contact?.email}`} className="text-zinc-400 text-sm font-medium hover:text-destructive transition-colors">{contact?.email || 'tamhisports@gmail.com'}</a>
               </li>
             </ul>
           </div>
@@ -205,7 +205,7 @@ const Footer = () => {
       <div className="border-t border-zinc-900 py-8 bg-zinc-950">
         <div className="container mx-auto px-4 flex flex-col md:row justify-between items-center gap-6">
           <p className="text-zinc-500 text-xs font-medium text-center md:text-left">
-            &copy; {new Date().getFullYear()} {contact?.companyName || 'Nguyễn Bính Sports'}. All Rights Reserved.
+            &copy; {new Date().getFullYear()} {contact?.companyName || 'Tâm Hí Sports'}. All Rights Reserved.
           </p>
           <div className="flex gap-3">
             {["VISA", "MASTERCARD", "MOMO", "VNPAY"].map(tag => (
@@ -221,4 +221,3 @@ const Footer = () => {
 };
 
 export default Footer;
-

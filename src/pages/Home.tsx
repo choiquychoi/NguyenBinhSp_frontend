@@ -13,9 +13,9 @@ const Home: React.FC = () => {
   return (
     <div className="min-h-screen bg-background text-foreground">
       <SEO 
-        title="Nguyễn Bính Sports - Chuyên đồ thể thao Cầu lông, Pickleball chính hãng"
-        description="Nguyễn Bính Sports chuyên cung cấp vợt cầu lông, vợt pickleball, tennis, giày thể thao chính hãng. Uy tín, chất lượng tại TP.HCM."
-        keywords="cầu lông, pickleball, tennis, giày thể thao, vợt cầu lông, Nguyễn Bính Sports"
+        title="Tâm Hí Sports - Chuyên đồ thể thao Cầu lông, Pickleball chính hãng"
+        description="Tâm Hí Sports chuyên cung cấp vợt cầu lông, vợt pickleball, tennis, giày thể thao chính hãng. Uy tín, chất lượng tại TP.HCM."
+        keywords="cầu lông, pickleball, tennis, giày thể thao, vợt cầu lông, Tâm Hí Sports"
       />
       <Navbar />
       <main>

@@ -22,24 +22,24 @@ const FocusProduct = () => {
         if (focus) {
           setProduct({
             ...focus,
-            name: 'Vợt cầu lông thiên công VS Youlong',
-            image: 'https://thegioicaulong.vn/wp-content/uploads/2023/12/youlong-red-1.jpg'
+            name: 'Vợt cầu lông Victor Thruster Ryuga Metallic',
+            image: 'https://s3-api.n8-workshop.com/internbucket/products/1777341570807-495372463_3760049437475071_4813199914581734053_n.jpg'
           });
         } else {
           setProduct({
-            name: 'Vợt cầu lông thiên công VS Youlong',
-            description: 'Siêu phẩm thiên công mạnh mẽ với họa tiết Rồng xanh uốn lượn tinh xảo. Sử dụng sợi Carbon 40T cao cấp từ Nhật Bản, Youlong mang lại những cú smash uy lực và độ ổn định tuyệt đối.',
-            image: 'https://thegioicaulong.vn/wp-content/uploads/2023/12/youlong-red-1.jpg',
-            price: 1850000
+            name: 'Vợt cầu lông Victor Thruster Ryuga Metallic',
+            description: 'Siêu phẩm vợt tấn công mới Victor Thruster Ryuga Metallic dự kiến sẽ được ra mắt trong thời gian cuối năm nay. Với thiết kế cao cấp cùng nhiều công nghệ trang bị tối tân, nếu bạn là một fan cuồng nhiệt với các cây vợt của dòng Thruster nhà Victor, yêu thích lối chơi cầu tấn công thì chắc chắn không thể bỏ qua sự kiện cực hot này đâu nhé!',
+            image: 'https://s3-api.n8-workshop.com/internbucket/products/1777341570807-495372463_3760049437475071_4813199914581734053_n.jpg',
+            price: 3450000
           });
         }
       } catch (error) {
         console.error('Error fetching focus product:', error);
         setProduct({
-          name: 'Vợt cầu lông thiên công VS Youlong',
-          description: 'Siêu phẩm thiên công mạnh mẽ với họa tiết Rồng xanh uốn lượn tinh xảo. Sử dụng sợi Carbon 40T cao cấp từ Nhật Bản, Youlong mang lại những cú smash uy lực và độ ổn định tuyệt đối.',
-          image: 'https://thegioicaulong.vn/wp-content/uploads/2023/12/youlong-red-1.jpg',
-          price: 1850000
+          name: 'Vợt cầu lông Victor Thruster Ryuga Metallic',
+          description: 'Siêu phẩm vợt tấn công mới Victor Thruster Ryuga Metallic dự kiến sẽ được ra mắt trong thời gian cuối năm nay. Với thiết kế cao cấp cùng nhiều công nghệ trang bị tối tân, nếu bạn là một fan cuồng nhiệt với các cây vợt của dòng Thruster nhà Victor, yêu thích lối chơi cầu tấn công thì chắc chắn không thể bỏ qua sự kiện cực hot này đâu nhé!',
+          image: 'https://s3-api.n8-workshop.com/internbucket/products/1777341570807-495372463_3760049437475071_4813199914581734053_n.jpg',
+          price: 3450000
         });
       }
     };
@@ -90,9 +90,9 @@ const FocusProduct = () => {
             
             <div className="space-y-4 mb-12">
               {[
-                "Sợi Carbon 40T cao cấp Nhật Bản",
-                "Khung vợt Power Frame tấn công uy lực",
-                "Thiết kế Rồng Xanh uốn lượn tinh xảo"
+                "Thiết kế metallic bóng bẩy, nổi bật trên mọi sân đấu",
+                "Khung vợt sắc nét, phối màu mạnh mẽ đầy cá tính",
+                "Ngoại hình đậm chất chiến binh, lấy cảm hứng từ sức mạnh rồng"
               ].map((feature, i) => (
                 <motion.div 
                   key={i}

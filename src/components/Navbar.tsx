@@ -77,12 +77,12 @@ const Navbar = () => {
   };
 
   const navLinks = [
-    { name: "Cầu Lông", path: "/category/Cầu lông" },
-    { name: "Pickleball", path: "/category/Pickleball" },
-    { name: "Tennis", path: "/category/Tennis" },
-    { name: "Giày", path: "/category/Giày Thể Thao" },
-    { name: "Phụ Kiện", path: "/category/Phụ Kiện" },
-    { name: "Tin tức", path: "/news" },
+    { name: 'Cầu lông', path: '/category/Cầu lông' },
+    { name: 'Pickleball', path: '/category/Pickleball' },
+    { name: 'Quần áo', path: '/category/Quần áo' },
+    { name: 'Giày', path: '/category/Giày Thể Thao' },
+    { name: 'Phụ kiện', path: '/category/Phụ Kiện' },
+    { name: 'Tin tức', path: '/news' },
     { name: "Liên Hệ", path: "/contact" },
   ];
 
@@ -99,13 +99,13 @@ const Navbar = () => {
             <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-destructive group-hover:scale-110 transition-transform duration-300 shadow-lg">
               <img 
                 src={logo} 
-                alt="Logo Nguyễn Bính Sports" 
+                alt="Logo Tâm Hí Sports" 
                 className="w-full h-full object-cover"
               />
             </div>
             <div className="flex flex-col leading-none">
-              <span className="text-xl font-black uppercase tracking-tighter text-destructive">NguyễnBính</span>
-              <span className="text-sm font-bold uppercase tracking-[0.2em] text-green-600">Sports</span>
+              <span className="text-xl font-black uppercase tracking-tighter text-orange-500">TâmHí</span>
+              <span className="text-sm italic ... font-bold uppercase tracking-[0.2em] text-green-600">Sport</span>
             </div>
           </Link>
         </div>
@@ -206,7 +206,7 @@ const Navbar = () => {
               <SheetContent side="right" className="w-[300px] sm:w-[400px]">
                 <SheetHeader>
                   <SheetTitle className="text-left text-2xl font-black uppercase tracking-tighter mb-8">
-                    <span className="text-destructive">NguyễnBính</span>
+                    <span className="text-destructive">TâmHí</span>
                     <span className="text-green-600 dark:text-green-500">Sports</span>
                   </SheetTitle>
                 </SheetHeader>

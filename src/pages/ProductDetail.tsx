@@ -82,7 +82,7 @@ const ProductDetail: React.FC = () => {
       <SEO 
         title={`${product.name} - ${product.category}`}
         description={`${product.name} chính hãng từ ${product.brand}. ${product.description.substring(0, 150)}...`}
-        keywords={`${product.name}, ${product.brand}, ${product.category}, Nguyễn Bính Sports`}
+        keywords={`${product.name}, ${product.brand}, ${product.category}, Tâm Hí Sports`}
         image={product.mainImage}
         type="product"
       />
@@ -258,7 +258,7 @@ const ProductDetail: React.FC = () => {
           >
             <img 
               src={infographic} 
-              alt="Nguyễn Bính Sports Infographic" 
+              alt="Tâm Hí Sports Infographic" 
               className="w-full h-auto transition-transform duration-1000 group-hover:scale-105"
             />
           </motion.div>

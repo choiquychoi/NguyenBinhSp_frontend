@@ -80,8 +80,8 @@ const CategoryPage: React.FC = () => {
     <div className="min-h-screen bg-white font-sans text-gray-900">
       <SEO 
         title={`Danh mục ${categoryName}`}
-        description={`Khám phá danh sách sản phẩm ${categoryName} chính hãng tại Nguyễn Bính Sports. Chất lượng hàng đầu, giá cả cạnh tranh.`}
-        keywords={`${categoryName}, vợt cầu lông, dụng cụ thể thao, Nguyễn Bính Sports`}
+        description={`Khám phá danh sách sản phẩm ${categoryName} chính hãng tại Tâm Hí Sports. Chất lượng hàng đầu, giá cả cạnh tranh.`}
+        keywords={`${categoryName}, vợt cầu lông, dụng cụ thể thao, Tâm Hí Sports`}
       />
       <Navbar />
 

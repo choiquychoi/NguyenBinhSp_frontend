@@ -38,7 +38,7 @@ const AdminLogin: React.FC = () => {
     <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4">
       <div className="max-w-md w-full bg-white rounded-2xl shadow-xl overflow-hidden">
         <div className="bg-red-600 p-8 text-white text-center">
-          <h2 className="text-3xl font-bold">Nguyễn Bính Sports</h2>
+          <h2 className="text-3xl font-bold">Tâm Hí Sports</h2>
           <p className="mt-2 text-red-100">Hệ thống quản trị cửa hàng</p>
         </div>
         

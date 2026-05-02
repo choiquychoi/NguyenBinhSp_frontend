@@ -145,7 +145,7 @@ const AdminContact: React.FC = () => {
                 </div>
                 <div className="space-y-3">
                   <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Từ khóa tìm kiếm (Keywords)</label>
-                  <input type="text" className="form-input-custom bg-white/5 border-white/10 text-white focus:bg-white/20" value={formData.seoKeywords} onChange={e => setFormData({...formData, seoKeywords: e.target.value})} placeholder="VD: cau long, tennis, nguyen binh sports" />
+                  <input type="text" className="form-input-custom bg-white/5 border-white/10 text-white focus:bg-white/20" value={formData.seoKeywords} onChange={e => setFormData({...formData, seoKeywords: e.target.value})} placeholder="VD: cau long, tennis, tam hi sports" />
                 </div>
               </div>
             </section>

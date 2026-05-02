@@ -69,6 +69,7 @@ const NewsSection = () => {
                   <img 
                     src={item.thumbnail || 'https://images.unsplash.com/photo-1626224580175-66094142ce3a?q=80&w=600&auto=format&fit=crop'} 
                     alt={item.title} 
+                    onClick={() => window.location.href = `/news/${item.slug}`}
                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
                   />
                 </CardHeader>
@@ -77,7 +78,7 @@ const NewsSection = () => {
                     <Calendar className="h-4 w-4 text-destructive" />
                     {new Date(item.createdAt).toLocaleDateString('vi-VN')}
                   </div>
-                  <h3 className="text-xl font-black mb-4 group-hover:text-destructive transition-colors line-clamp-2 uppercase leading-tight">
+                  <h3 onClick={() => window.location.href = `/news/${item.slug}`} className="text-xl font-black mb-4 group-hover:text-destructive transition-colors line-clamp-2 uppercase leading-tight">
                     {item.title}
                   </h3>
                   <p className="text-muted-foreground leading-relaxed mb-6 line-clamp-3">

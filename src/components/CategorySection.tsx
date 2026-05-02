@@ -21,10 +21,10 @@ const CategorySection = () => {
     },
     {
       id: 6,
-      name: 'Tennis',
-      displayName: 'Vợt Tennis',
-      image: 'https://file.hstatic.net/1000292563/file/7_82f68a7ddfc345afb7bc684c84c94f68_1024x1024.jpg',
-      count: 'Wilson, Head, Babolat'
+      name: 'Quần áo',
+      displayName: 'Quần áo Thể Thao',
+      image: 'https://images.unsplash.com/photo-1483721310020-03333e577078?q=80&w=600&auto=format&fit=crop',
+      count: 'Áo, Quần, Bộ đồ'
     },
     {
       id: 4,

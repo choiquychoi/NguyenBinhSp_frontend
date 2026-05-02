@@ -18,7 +18,7 @@ const HeroBanner = () => {
       id: 2,
       image: 'https://joola.com.vn/images/1539/thumbs/joola-vision-1920x850xcrop.webp?1920',
       title: 'KỶ NGUYÊN PICKLEBALL',
-      subtitle: 'Đẳng cấp và tốc độ với bộ sưu tập của Nguyễn Bính Sports',
+      subtitle: 'Đẳng cấp và tốc độ với bộ sưu tập của Tâm Hí Sports',
       buttonText: 'KHÁM PHÁ',
     },
     {
