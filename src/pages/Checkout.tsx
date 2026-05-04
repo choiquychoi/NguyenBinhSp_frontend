@@ -73,7 +73,11 @@ const Checkout = () => {
           name: item.name,
           quantity: item.quantity,
           price: item.price,
-          image: item.image
+          image: item.image,
+          variantLabel: [
+            item.selectedSize ? `Size: ${item.selectedSize}` : '',
+            item.selectedColor ? `Màu: ${item.selectedColor}` : ''
+          ].filter(Boolean).join(', ')
         })),
         totalAmount: getCartTotal(),
         paymentMethod: formData.paymentMethod
@@ -449,14 +453,19 @@ const Checkout = () => {
                 
                 <div className="max-h-[300px] overflow-y-auto pr-2 custom-scrollbar space-y-6 mb-8">
                   {cart.map((item) => (
-                    <div key={item._id} className="flex gap-4 items-center">
+                    <div key={item._id + (item.selectedSize || '') + (item.selectedColor || '')} className="flex gap-4 items-center">
                       <div className="w-16 h-16 rounded-xl overflow-hidden bg-zinc-100 border border-zinc-50 shrink-0">
                         <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
                       </div>
                       <div className="flex-1 min-w-0">
                         <h4 className="font-black uppercase tracking-tighter text-xs line-clamp-1">{item.name}</h4>
-                        {item.variantLabel && (
-                          <p className="text-[9px] font-black text-destructive uppercase tracking-widest">{item.variantLabel}</p>
+                        {(item.selectedSize || item.selectedColor) && (
+                          <p className="text-[9px] font-black text-destructive uppercase tracking-widest">
+                            {[
+                              item.selectedSize ? `Size: ${item.selectedSize}` : '',
+                              item.selectedColor ? `Màu: ${item.selectedColor}` : ''
+                            ].filter(Boolean).join(', ')}
+                          </p>
                         )}
                         <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">SL: {item.quantity} x {item.price.toLocaleString()}₫</p>
                       </div>

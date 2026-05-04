@@ -28,6 +28,9 @@ interface IProduct {
   slug: string;
 }
 
+const CLOTHES_SIZES = ['S', 'M', 'L', 'XL', 'XXL', '3XL', '4XL', 'Free Size'];
+const CLOTHES_COLORS = ['Đen', 'Trắng', 'Đỏ', 'Xanh Dương', 'Xanh Lá', 'Vàng', 'Xám', 'Tím', 'Hồng', 'Cam', 'Nâu', 'Navy', 'Cream', 'Beige'];
+
 const AdminProducts: React.FC = () => {
   const navigate = useNavigate();
   const [products, setProducts] = useState<IProduct[]>([]);
@@ -55,7 +58,7 @@ const AdminProducts: React.FC = () => {
     specifications: {
       badminton: { weightGrip: '', balance: '', maxTension: '', frameThickness: '', shaftDiameter: '', frameMaterial: '', shaftMaterial: '', length: '', color: '', origin: '' },
       pickleball: { surface: '', core: '', upaACert: false, usapCert: false, warranty: '', shape: '', length: '', width: '', handleType: '', handleLength: '', handleCircumference: '' },
-      clothes: { material: '', size: '', color: '', origin: '', technology: '' },
+      clothes: { material: '', sizes: [] as string[], colors: [] as string[], origin: '', technology: '' },
       shoes: { color: '', origin: '', technology: '', soleMaterial: '', upperMaterial: '' },
       others: ''
     },
@@ -145,7 +148,21 @@ const AdminProducts: React.FC = () => {
     setFormData({
       ...initialFormState,
       ...product,
-      gallery: product.gallery && product.gallery.length > 0 ? product.gallery : ['']
+      gallery: product.gallery && product.gallery.length > 0 ? product.gallery : [''],
+      specifications: {
+        ...initialFormState.specifications,
+        ...product.specifications,
+        clothes: {
+          ...initialFormState.specifications.clothes,
+          ...(product.specifications?.clothes || {}),
+          sizes: Array.isArray(product.specifications?.clothes?.sizes) 
+            ? product.specifications.clothes.sizes 
+            : (product.specifications?.clothes?.size ? [product.specifications.clothes.size] : []),
+          colors: Array.isArray(product.specifications?.clothes?.colors) 
+            ? product.specifications.clothes.colors 
+            : (product.specifications?.clothes?.color ? [product.specifications.clothes.color] : [])
+        }
+      }
     });
     setFormError('');
     setActiveTab('basic');
@@ -390,19 +407,87 @@ const AdminProducts: React.FC = () => {
                       ))}
                     </div>
                   ) : formData.category === 'Quần áo' ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                      {[
-                        { label: 'Chất liệu', key: 'material' }, { label: 'Bảng size', key: 'size' },
-                        { label: 'Màu sắc', key: 'color' }, { label: 'Xuất xứ', key: 'origin' },
-                        { label: 'Công nghệ vải', key: 'technology' },
-                      ].map(f => (
-                        <div key={f.key} className="space-y-2">
-                          <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">{f.label}</label>
-                          <input type="text" className="form-input-custom text-sm" value={(formData.specifications.clothes as any)?.[f.key] || ''} 
-                            onChange={e => setFormData({...formData, specifications: {...formData.specifications, clothes: { ...formData.specifications.clothes as any, [f.key]: e.target.value }}})} 
+                    <div className="space-y-10">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div className="space-y-2">
+                          <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Chất liệu</label>
+                          <input type="text" className="form-input-custom text-sm" value={formData.specifications.clothes?.material || ''} 
+                            onChange={e => setFormData({...formData, specifications: {...formData.specifications, clothes: { ...formData.specifications.clothes, material: e.target.value }}})} 
+                            placeholder="VD: 100% Polyester"
                           />
                         </div>
-                      ))}
+                        <div className="space-y-2">
+                          <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Xuất xứ</label>
+                          <input type="text" className="form-input-custom text-sm" value={formData.specifications.clothes?.origin || ''} 
+                            onChange={e => setFormData({...formData, specifications: {...formData.specifications, clothes: { ...formData.specifications.clothes, origin: e.target.value }}})} 
+                            placeholder="VD: Việt Nam"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="space-y-6">
+                        <div className="space-y-4">
+                          <label className="text-[10px] font-black text-red-600 uppercase tracking-[0.2em]">Kích thước (Sizes)</label>
+                          <div className="flex flex-wrap gap-3">
+                            {CLOTHES_SIZES.map(size => {
+                              const isSelected = formData.specifications.clothes?.sizes?.includes(size);
+                              return (
+                                <button
+                                  key={size}
+                                  type="button"
+                                  onClick={() => {
+                                    const currentSizes = formData.specifications.clothes?.sizes || [];
+                                    const newSizes = isSelected 
+                                      ? currentSizes.filter((s: string) => s !== size)
+                                      : [...currentSizes, size];
+                                    setFormData({
+                                      ...formData, 
+                                      specifications: {
+                                        ...formData.specifications, 
+                                        clothes: { ...formData.specifications.clothes, sizes: newSizes }
+                                      }
+                                    });
+                                  }}
+                                  className={`px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border-2 ${isSelected ? 'bg-red-600 border-red-600 text-white shadow-lg shadow-red-100' : 'bg-white border-gray-100 text-gray-400 hover:border-red-200'}`}
+                                >
+                                  {size}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+
+                        <div className="space-y-4 pt-6 border-t border-gray-100">
+                          <label className="text-[10px] font-black text-red-600 uppercase tracking-[0.2em]">Màu sắc (Colors)</label>
+                          <div className="flex flex-wrap gap-3">
+                            {CLOTHES_COLORS.map(color => {
+                              const isSelected = formData.specifications.clothes?.colors?.includes(color);
+                              return (
+                                <button
+                                  key={color}
+                                  type="button"
+                                  onClick={() => {
+                                    const currentColors = formData.specifications.clothes?.colors || [];
+                                    const newColors = isSelected 
+                                      ? currentColors.filter((c: string) => c !== color)
+                                      : [...currentColors, color];
+                                    setFormData({
+                                      ...formData, 
+                                      specifications: {
+                                        ...formData.specifications, 
+                                        clothes: { ...formData.specifications.clothes, colors: newColors }
+                                      }
+                                    });
+                                  }}
+                                  className={`px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border-2 ${isSelected ? 'bg-black border-black text-white shadow-lg shadow-gray-200' : 'bg-white border-gray-100 text-gray-400 hover:border-gray-300'}`}
+                                >
+                                  {color}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   ) : formData.category === 'Giày Thể Thao' ? (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">

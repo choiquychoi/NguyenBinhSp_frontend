@@ -34,6 +34,8 @@ const ProductDetail: React.FC = () => {
   const [product, setProduct] = useState<IProduct | null>(null);
   const [activeImg, setActiveImg] = useState('');
   const [quantity, setQuantity] = useState(1);
+  const [selectedSize, setSelectedSize] = useState('');
+  const [selectedColor, setSelectedColor] = useState('');
   const [showSpecs, setShowSpecs] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -45,6 +47,12 @@ const ProductDetail: React.FC = () => {
         const { data } = await api.get(`/products/${slug}`);
         setProduct(data);
         setActiveImg(data.mainImage);
+        
+        // Auto-select first options if available for clothes
+        if (data.category === 'Quần áo' && data.specifications?.clothes) {
+          if (data.specifications.clothes.sizes?.length > 0) setSelectedSize(data.specifications.clothes.sizes[0]);
+          if (data.specifications.clothes.colors?.length > 0) setSelectedColor(data.specifications.clothes.colors[0]);
+        }
       } catch (error) {
         console.error('Lỗi tải dữ liệu:', error);
       } finally {
@@ -61,13 +69,26 @@ const ProductDetail: React.FC = () => {
   const discountPercentage = product.salePrice ? Math.round(((product.price - product.salePrice) / product.price) * 100) : 0;
 
   const handleAddToCart = () => {
+    if (product.category === 'Quần áo') {
+      if (product.specifications?.clothes?.sizes?.length > 0 && !selectedSize) {
+        alert('Vui lòng chọn kích thước!');
+        return;
+      }
+      if (product.specifications?.clothes?.colors?.length > 0 && !selectedColor) {
+        alert('Vui lòng chọn màu sắc!');
+        return;
+      }
+    }
+
     addToCart({
       _id: product._id,
       name: product.name,
       price: product.salePrice || product.price,
       image: product.mainImage,
       category: product.category,
-      slug: product.slug
+      slug: product.slug,
+      selectedSize,
+      selectedColor
     }, quantity);
     alert('Đã thêm sản phẩm vào giỏ hàng!');
   };
@@ -136,6 +157,47 @@ const ProductDetail: React.FC = () => {
               </div>
 
               <div className="space-y-6">
+                {product.category === 'Quần áo' && product.specifications?.clothes && (
+                  <div className="space-y-6 py-6 border-b border-gray-50">
+                    {product.specifications.clothes.sizes?.length > 0 && (
+                      <div className="space-y-4">
+                        <div className="flex justify-between items-center">
+                          <span className="text-xs font-black uppercase tracking-widest text-gray-400">Kích thước: <span className="text-gray-900">{selectedSize}</span></span>
+                          <button className="text-[10px] font-bold text-red-600 uppercase underline underline-offset-4">Hướng dẫn chọn size</button>
+                        </div>
+                        <div className="flex flex-wrap gap-3">
+                          {product.specifications.clothes.sizes.map((size: string) => (
+                            <button
+                              key={size}
+                              onClick={() => setSelectedSize(size)}
+                              className={`w-14 h-12 rounded-xl flex items-center justify-center text-xs font-black transition-all border-2 ${selectedSize === size ? 'bg-black border-black text-white shadow-xl scale-110' : 'bg-white border-gray-100 text-gray-400 hover:border-gray-300'}`}
+                            >
+                              {size}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {product.specifications.clothes.colors?.length > 0 && (
+                      <div className="space-y-4">
+                        <span className="text-xs font-black uppercase tracking-widest text-gray-400">Màu sắc: <span className="text-gray-900">{selectedColor}</span></span>
+                        <div className="flex flex-wrap gap-3">
+                          {product.specifications.clothes.colors.map((color: string) => (
+                            <button
+                              key={color}
+                              onClick={() => setSelectedColor(color)}
+                              className={`px-6 py-3 rounded-xl flex items-center justify-center text-[10px] font-black uppercase tracking-widest transition-all border-2 ${selectedColor === color ? 'bg-red-600 border-red-600 text-white shadow-xl scale-105' : 'bg-white border-gray-100 text-gray-400 hover:border-gray-300'}`}
+                            >
+                              {color}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 <div className="flex items-center space-x-6">
                   <span className="text-xs font-black uppercase tracking-widest text-gray-400">Số lượng:</span>
                   <div className="flex items-center border-2 border-gray-100 rounded-2xl p-1 bg-gray-50">
@@ -216,12 +278,16 @@ const ProductDetail: React.FC = () => {
                     else if (product.category === 'Pickleball') specsToDisplay = specs.pickleball || {};
                     else if (product.category === 'Tennis') specsToDisplay = specs.tennis || {};
                     else if (product.category === 'Giày Thể Thao') specsToDisplay = specs.shoes || {};
+                    else if (product.category === 'Quần áo') specsToDisplay = specs.clothes || {};
 
                     const entries = Object.entries(specsToDisplay);
                     if (entries.length === 0) return <p className="col-span-2 text-center text-gray-400 font-bold uppercase text-[10px] tracking-widest">Không có thông số kỹ thuật chi tiết.</p>;
 
                     return entries.map(([key, value]) => {
-                      if (!value) return null;
+                      if (!value || (Array.isArray(value) && value.length === 0)) return null;
+                      // Skip sizes and colors as they are already shown in selection
+                      if (product.category === 'Quần áo' && (key === 'sizes' || key === 'colors')) return null;
+
                       const labels: any = { 
                         weightGrip: 'Trọng lượng / Cán', 
                         balance: 'Độ cân bằng', 
@@ -229,12 +295,15 @@ const ProductDetail: React.FC = () => {
                         surface: 'Mặt vợt',
                         core: 'Lõi vợt',
                         technology: 'Công nghệ',
-                        origin: 'Xuất xứ'
+                        origin: 'Xuất xứ',
+                        material: 'Chất liệu',
+                        soleMaterial: 'Chất liệu đế',
+                        upperMaterial: 'Chất liệu thân'
                       };
                       return (
                         <div key={key} className="group border-b border-gray-50 pb-4">
                           <div className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-2">{labels[key] || key}</div>
-                          <div className="text-sm font-bold text-gray-950">{String(value)}</div>
+                          <div className="text-sm font-bold text-gray-950">{Array.isArray(value) ? value.join(', ') : String(value)}</div>
                         </div>
                       );
                     });

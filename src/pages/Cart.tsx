@@ -92,9 +92,23 @@ const Cart = () => {
                               {item.name}
                             </h3>
                           </Link>
+                          {(item.selectedSize || item.selectedColor) && (
+                            <div className="flex gap-3 mt-2">
+                              {item.selectedSize && (
+                                <Badge variant="outline" className="rounded-none font-black text-[9px] uppercase tracking-widest border-zinc-200">
+                                  Size: {item.selectedSize}
+                                </Badge>
+                              )}
+                              {item.selectedColor && (
+                                <Badge variant="outline" className="rounded-none font-black text-[9px] uppercase tracking-widest border-zinc-200">
+                                  Màu: {item.selectedColor}
+                                </Badge>
+                              )}
+                            </div>
+                          )}
                         </div>
                         <button 
-                          onClick={() => removeFromCart(item._id)}
+                          onClick={() => removeFromCart(item._id, item.selectedSize, item.selectedColor)}
                           className="text-zinc-300 hover:text-destructive transition-colors p-2 hover:bg-destructive/5 rounded-full"
                         >
                           <Trash2 size={20} />
@@ -105,14 +119,14 @@ const Cart = () => {
                         {/* Bộ tăng giảm số lượng */}
                         <div className="flex items-center bg-zinc-50 rounded-xl p-1 border border-zinc-100">
                           <button 
-                            onClick={() => updateQuantity(item._id, item.quantity - 1)}
+                            onClick={() => updateQuantity(item._id, item.quantity - 1, item.selectedSize, item.selectedColor)}
                             className="w-10 h-10 flex items-center justify-center hover:bg-white hover:shadow-sm rounded-lg transition-all text-zinc-400 hover:text-destructive"
                           >
                             <Minus size={16} />
                           </button>
                           <span className="w-12 text-center font-black text-sm">{item.quantity}</span>
                           <button 
-                            onClick={() => updateQuantity(item._id, item.quantity + 1)}
+                            onClick={() => updateQuantity(item._id, item.quantity + 1, item.selectedSize, item.selectedColor)}
                             className="w-10 h-10 flex items-center justify-center hover:bg-white hover:shadow-sm rounded-lg transition-all text-zinc-400 hover:text-destructive"
                           >
                             <Plus size={16} />
